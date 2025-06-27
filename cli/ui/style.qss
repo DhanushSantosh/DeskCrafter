@@ -1,0 +1,170 @@
+QWidget {
+    background: #23272e;
+    color: #e6e6e6;
+    font-family: 'Segoe UI', 'Arial', sans-serif;
+    font-size: 14px;
+}
+
+QFrame#TopBar {
+    background: #20232a;
+    border-bottom: 2px solid #353a42;
+    padding: 0 0 0 0;
+}
+
+QFrame#Sidebar {
+    background: #20232a;
+    border-radius: 16px;
+    border: 1.5px solid #353a42;
+    margin: 24px 0 12px 24px;
+    padding: 24px;
+}
+
+QFrame#Content {
+    background: transparent;
+    margin: 24px 24px 24px 0;
+    padding: 32px 40px;
+}
+
+QFrame#SidebarFrame {
+    background: #20232a;
+    border-radius: 10px;
+    border: 1.5px solid #353a42;
+}
+
+QFrame#FormCard {
+    background: #23272e;
+    border-radius: 12px;
+    border: 1.5px solid #353a42;
+}
+
+QFrame#PreviewFrame {
+    background: #20232a;
+    border-radius: 12px;
+    border: 1.5px solid #353a42;
+    margin-top: 12px;
+    margin-bottom: 8px;
+    padding: 0;
+}
+
+QFrame#LivePreviewCard {
+    background: #23272e;
+    border-radius: 12px;
+    border: 1.5px solid #353a42;
+    margin-top: 8px;
+    margin-bottom: 8px;
+    padding: 0;
+    min-height: 140px;
+    max-height: 200px;
+}
+
+QLineEdit, QComboBox {
+    background: #2c313c;
+    border: 1px solid #444;
+    border-radius: 6px;
+    padding: 8px;
+    color: #e6e6e6;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+QPushButton {
+    background: #3b4252;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 14px;
+    color: #e6e6e6;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+QPushButton:hover {
+    background: #4c566a;
+}
+
+QPushButton#AddButton {
+    background: #5e81ac;
+    color: #fff;
+    font-weight: bold;
+    border-radius: 5px;
+    margin-right: 4px;
+}
+
+QPushButton#AddButton:hover {
+    background: #81a1c1;
+}
+
+QPushButton#CreateButton {
+    background: #a3be8c;
+    color: #23272e;
+    font-weight: bold;
+    border-radius: 5px;
+    margin-top: 6px;
+    margin-bottom: 6px;
+}
+
+QPushButton#CreateButton:hover {
+    background: #b8e994;
+}
+
+QLabel {
+    font-weight: bold;
+    margin-bottom: 2px;
+    font-size: 14px;
+}
+
+#AppTitle {
+    font-size: 20px;
+    font-weight: bold;
+    color: #8ecae6;
+    margin-left: 6px;
+}
+
+#CloseButton {
+    background: #bf616a;
+    color: #fff;
+    font-size: 16px;
+    border-radius: 12px;
+    border: none;
+    font-weight: bold;
+}
+#CloseButton:hover {
+    background: #d08770;
+}
+
+QListWidget {
+    background: #23272e;
+    border: 1px solid #444;
+    border-radius: 6px;
+    color: #e6e6e6;
+    padding: 6px;
+    margin-bottom: 8px;
+    font-size: 14px;
+    min-height: 120px;
+}
+
+QListWidget::item {
+    padding: 12px 8px;
+    margin-bottom: 4px;
+}
+
+QListWidget::item:selected, QListWidget::item:hover {
+    background: #4c566a;
+    color: #fff;
+    border-radius: 6px;
+}
+
+#StatsBar {
+    background: #181a20;
+    color: #aaa;
+    border-top: 1px solid #444;
+    font-size: 14px;
+    padding: 10px 16px;
+    border-radius: 0px 0px 8px 8px;
+}
+
+#StatusBar {
+    background: #20232a;
+    border-top: 2px solid #353a42;
+    font-size: 14px;
+    padding: 10px 0;
+}
