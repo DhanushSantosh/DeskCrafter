@@ -11,13 +11,13 @@ NC='\033[0m' # No Color
 BOLD='\033[1m'
 
 APP_NAME="deskcrafter"
-INSTALL_DIR="$HOME/.local/bin"
+INSTALL_DIR="/usr/bin"
 LAUNCHER="$INSTALL_DIR/$APP_NAME"
 PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
 VENV_DIR="$PROJECT_DIR/.venv"
 VENV_PYTHON="$VENV_DIR/bin/python"
 VENV_PIP="$VENV_DIR/bin/pip"
-DESKTOP_ENTRY="$HOME/.local/share/applications/$APP_NAME.desktop"
+DESKTOP_ENTRY="/usr/share/applications/$APP_NAME.desktop"
 ICON_PATH="$PROJECT_DIR/assets/icon.png"
 REQUIREMENTS_FILE="$PROJECT_DIR/requirements.txt"
 
@@ -106,8 +106,8 @@ function install_deps() {
 
 function create_launcher() {
     info "Creating launcher script..."
-    mkdir -p "$INSTALL_DIR"
-    cat > "$LAUNCHER" <<EOF
+    sudo mkdir -p "$INSTALL_DIR"
+    cat > "/tmp/$APP_NAME-launcher" <<EOF
 #!/bin/bash
 cd "$PROJECT_DIR"
 if [ -d "$VENV_DIR" ]; then
@@ -124,14 +124,15 @@ else
     exit 1
 fi
 EOF
-    chmod +x "$LAUNCHER"
+    sudo mv "/tmp/$APP_NAME-launcher" "$LAUNCHER"
+    sudo chmod +x "$LAUNCHER"
     info "Created launcher at $LAUNCHER"
 }
 
 function create_desktop_entry() {
     info "Creating desktop entry..."
-    mkdir -p "$(dirname "$DESKTOP_ENTRY")"
-    cat > "$DESKTOP_ENTRY" <<EOF
+    sudo mkdir -p "$(dirname "$DESKTOP_ENTRY")"
+    cat > "/tmp/$APP_NAME.desktop" <<EOF
 [Desktop Entry]
 Version=1.0
 Type=Application
@@ -143,14 +144,15 @@ Terminal=false
 Categories=Utility;
 StartupWMClass=DeskCrafter
 EOF
-    chmod +x "$DESKTOP_ENTRY"
+    sudo mv "/tmp/$APP_NAME.desktop" "$DESKTOP_ENTRY"
+    sudo chmod +x "$DESKTOP_ENTRY"
     info "Created desktop entry at $DESKTOP_ENTRY"
 }
 
 function uninstall() {
     print_boxed "Uninstalling DeskCrafter"
-    rm -f "$LAUNCHER"
-    rm -f "$DESKTOP_ENTRY"
+    sudo rm -f "$LAUNCHER"
+    sudo rm -f "$DESKTOP_ENTRY"
     info "Removed launcher and desktop entry."
     echo "(Optional) Remove virtual environment with: rm -rf $VENV_DIR"
     info "Uninstall complete."
