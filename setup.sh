@@ -80,17 +80,17 @@ For Arch:            sudo pacman -S python-pip"
     fi
 }
 
-function check_requirements() {
-    if [ ! -f "$REQUIREMENTS_FILE" ]; then
-        warn "requirements.txt not found. Continuing, but dependencies may be missing."
-    fi
-}
-
 function copy_project_files() {
     info "Copying project files to $INSTALL_PREFIX ..."
     sudo mkdir -p "$INSTALL_PREFIX"
     sudo rsync -a --exclude='.venv' --exclude='venv' --exclude='env' --exclude='.env' --exclude='.git' --exclude='__pycache__' "$PROJECT_DIR/" "$INSTALL_PREFIX/"
     sudo chown -R root:root "$INSTALL_PREFIX"
+}
+
+function check_requirements() {
+    if [ ! -f "$REQUIREMENTS_FILE" ]; then
+        warn "requirements.txt not found. Continuing, but dependencies may be missing."
+    fi
 }
 
 function create_venv() {
@@ -172,8 +172,8 @@ function install() {
     check_bash
     check_python
     check_pip
-    check_requirements
     copy_project_files
+    check_requirements
     create_venv
     install_deps
     create_launcher
