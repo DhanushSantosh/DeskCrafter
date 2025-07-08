@@ -81,6 +81,7 @@ You can run the script with `install`, `uninstall`, or `help` as arguments, or s
 
 3. **Launch DeskCrafter:**
    - From your application menu, search for "DeskCrafter" and launch it.
+   - run `deskcrafter` from terminal.
 
 ---
 
