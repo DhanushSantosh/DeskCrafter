@@ -11,7 +11,7 @@ NC='\033[0m' # No Color
 BOLD='\033[1m'
 
 APP_NAME="deskcrafter"
-INSTALL_DIR="/usr/local/bin"
+INSTALL_DIR="/usr/bin"
 INSTALL_PREFIX="/opt/$APP_NAME"
 LAUNCHER="$INSTALL_DIR/$APP_NAME"
 PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
