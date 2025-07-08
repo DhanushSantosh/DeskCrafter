@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import (
     QMessageBox, QComboBox, QListWidget, QListWidgetItem, QFrame, QScrollArea, QSizePolicy, QCheckBox
 )
 from PyQt5.QtGui import QIcon, QPixmap
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QSize
 import os
 import json
 
@@ -23,7 +23,7 @@ class MainWindow(QWidget):
         super().__init__()
         self.setWindowTitle(APP_TITLE)
         self.setWindowIcon(QIcon(ICON_PATH))
-        self.setMinimumSize(1280, 850)
+        self.setMaximumSize(1280, 850)
         self.resize(1280, 850)
         self.entries = []
         self.filtered_entries = []
@@ -35,12 +35,12 @@ class MainWindow(QWidget):
 
     def setup_ui(self):
         outer = QVBoxLayout(self)
-        outer.setContentsMargins(24, 18, 24, 12)
-        outer.setSpacing(12)
+        outer.setContentsMargins(18, 18, 18, 18)
+        outer.setSpacing(8)
         outer.addLayout(self._create_topbar())
 
         split = QHBoxLayout()
-        split.setSpacing(5)
+        split.setSpacing(12)  # Increase spacing between sidebar and content area
         split.addWidget(self._create_sidebar())
         split.addWidget(self._create_content_area(), 1)
         outer.addLayout(split, 1)
@@ -70,7 +70,6 @@ class MainWindow(QWidget):
         add_btn.clicked.connect(lambda: self.clear_form(status="New entry form ready"))
         topbar.addWidget(add_btn)
 
-        # --- Import/Export buttons ---
         export_btn = QPushButton("Export")
         export_btn.setFixedSize(90, 40)
         export_btn.clicked.connect(self.export_entries)
@@ -80,7 +79,6 @@ class MainWindow(QWidget):
         import_btn.setFixedSize(90, 40)
         import_btn.clicked.connect(self.import_entries)
         topbar.addWidget(import_btn)
-        # --- End Import/Export buttons ---
 
         close_btn = QPushButton("✕")
         close_btn.setFixedSize(40, 40)
@@ -90,43 +88,72 @@ class MainWindow(QWidget):
         return topbar
 
     def _create_sidebar(self):
-        sidebar_frame = QFrame()
-        sidebar_frame.setObjectName("SidebarFrame")
-        sidebar_frame.setFrameShape(QFrame.StyledPanel)
-        sidebar_frame.setFrameShadow(QFrame.Raised)
-        sidebar_frame.setStyleSheet("""
-            QFrame#SidebarFrame {
-                border: 1.5px solid #444;
+        sidebar_outer = QFrame()
+        sidebar_outer.setObjectName("Sidebar")
+        sidebar_outer.setFrameShape(QFrame.StyledPanel)
+        sidebar_outer.setFrameShadow(QFrame.Raised)
+        sidebar_outer.setFixedWidth(SIDEBAR_WIDTH)
+        sidebar_outer.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+
+        sidebar_layout = QVBoxLayout(sidebar_outer)
+        sidebar_layout.setContentsMargins(4, 4, 4, 4)
+        sidebar_layout.setSpacing(1)
+
+        self.search_bar = QLineEdit()
+        self.search_bar.setPlaceholderText("Search...")
+        self.search_bar.setStyleSheet("font-size:14px; padding:8px; border-radius:6px;")
+        self.search_bar.textChanged.connect(self.filter_entries)
+        sidebar_layout.addWidget(self.search_bar)
+
+        # Entry list with icons
+        self.entry_list = QListWidget()
+        self.entry_list.setStyleSheet("""
+            QListWidget {
+                background: #23272e;
+                border: 1.5px solid #353a42;
                 border-radius: 10px;
-                background: #23242a;
+                color: #e6e6e6;
+                font-size: 15px;
+                min-height: 120px;
+            }
+            QListWidget::item {
+                padding: 12px 8px;
+                margin-bottom: 4px;
+            }
+            QListWidget::item:selected, QListWidget::item:hover {
+                background: #4c566a;
+                color: #fff;
+                border-radius: 8px;
             }
         """)
-        sidebar_frame.setFixedWidth(SIDEBAR_WIDTH)
-        sidebar_frame.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum)
-        sidebar_layout = QVBoxLayout(sidebar_frame)
-        sidebar_layout.setContentsMargins(12, 12, 12, 12)
-        sidebar_layout.setSpacing(8)
-
-        search_bar = QLineEdit()
-        search_bar.setPlaceholderText("Search entries...")
-        search_bar.setStyleSheet("font-size:14px;")
-        search_bar.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        search_bar.textChanged.connect(self.filter_entries)
-        sidebar_layout.addWidget(search_bar)
-
-        self.entry_list = QListWidget()
-        self.entry_list.setStyleSheet("font-size:14px; min-height:80px;")
+        self.entry_list.setIconSize(QSize(28, 28))
         self.entry_list.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.entry_list.itemSelectionChanged.connect(self.on_entry_selected)
-        sidebar_layout.addWidget(self.entry_list)
+        sidebar_layout.addWidget(self.entry_list, 1)
 
+        sidebar_layout.addStretch()
         del_btn = QPushButton("Delete Selected")
-        del_btn.setStyleSheet("font-size:14px;")
+        del_btn.setObjectName("SidebarDelete")
+        del_btn.setStyleSheet("""
+            QPushButton#SidebarDelete {
+                background: #bf616a;
+                color: #fff;
+                font-size: 15px;
+                border-radius: 8px;
+                padding: 10px 0;
+                font-weight: bold;
+                margin-top: 12px;
+                margin-bottom: 4px;
+            }
+            QPushButton#SidebarDelete:hover {
+                background: #d08770;
+            }
+        """)
         del_btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         del_btn.clicked.connect(self.delete_selected_entry)
         sidebar_layout.addWidget(del_btn)
-        sidebar_layout.addStretch()
-        return sidebar_frame
+
+        return sidebar_outer
 
     def _create_content_area(self):
         content_frame = QFrame()
@@ -251,6 +278,9 @@ class MainWindow(QWidget):
         self.entry_list.clear()
         for entry in self.filtered_entries:
             item = QListWidgetItem(entry.name)
+            icon_path = resolve_icon_path(entry.icon_path)
+            if icon_path:
+                item.setIcon(QIcon(icon_path))
             item.setData(Qt.UserRole, entry)
             self.entry_list.addItem(item)
         if not getattr(self, "_filtering", False):
