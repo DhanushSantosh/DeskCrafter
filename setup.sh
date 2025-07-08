@@ -11,15 +11,16 @@ NC='\033[0m' # No Color
 BOLD='\033[1m'
 
 APP_NAME="deskcrafter"
-INSTALL_DIR="/usr/bin"
+INSTALL_DIR="/usr/local/bin"
+INSTALL_PREFIX="/opt/$APP_NAME"
 LAUNCHER="$INSTALL_DIR/$APP_NAME"
 PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
-VENV_DIR="$PROJECT_DIR/.venv"
+VENV_DIR="$INSTALL_PREFIX/.venv"
 VENV_PYTHON="$VENV_DIR/bin/python"
 VENV_PIP="$VENV_DIR/bin/pip"
 DESKTOP_ENTRY="/usr/share/applications/$APP_NAME.desktop"
-ICON_PATH="$PROJECT_DIR/assets/icon.png"
-REQUIREMENTS_FILE="$PROJECT_DIR/requirements.txt"
+ICON_PATH="$INSTALL_PREFIX/assets/icon.png"
+REQUIREMENTS_FILE="$INSTALL_PREFIX/requirements.txt"
 
 function print_boxed() {
     local msg="$1"
@@ -85,10 +86,18 @@ function check_requirements() {
     fi
 }
 
+function copy_project_files() {
+    info "Copying project files to $INSTALL_PREFIX ..."
+    sudo mkdir -p "$INSTALL_PREFIX"
+    sudo rsync -a --exclude='.venv' --exclude='venv' --exclude='env' --exclude='.env' --exclude='.git' --exclude='__pycache__' "$PROJECT_DIR/" "$INSTALL_PREFIX/"
+    sudo chown -R root:root "$INSTALL_PREFIX"
+}
+
 function create_venv() {
     if [ ! -d "$VENV_DIR" ]; then
-        info "Creating virtual environment..."
-        python3 -m venv "$VENV_DIR"
+        info "Creating virtual environment in $VENV_DIR ..."
+        sudo python3 -m venv "$VENV_DIR"
+        sudo chown -R root:root "$VENV_DIR"
     else
         info "Virtual environment already exists."
     fi
@@ -96,9 +105,9 @@ function create_venv() {
 
 function install_deps() {
     if [ -f "$REQUIREMENTS_FILE" ]; then
-        info "Installing dependencies..."
-        "$VENV_PIP" install --upgrade pip
-        "$VENV_PIP" install -r "$REQUIREMENTS_FILE"
+        info "Installing dependencies in venv..."
+        sudo "$VENV_PIP" install --upgrade pip
+        sudo "$VENV_PIP" install -r "$REQUIREMENTS_FILE"
     else
         warn "Skipping dependency installation (requirements.txt not found)."
     fi
@@ -109,13 +118,13 @@ function create_launcher() {
     sudo mkdir -p "$INSTALL_DIR"
     cat > "/tmp/$APP_NAME-launcher" <<EOF
 #!/bin/bash
-cd "$PROJECT_DIR"
+cd "$INSTALL_PREFIX"
 if [ -d "$VENV_DIR" ]; then
     source "$VENV_DIR/bin/activate"
     # Check for required dependencies (edit as needed)
     if ! python -c "import cli" 2>/dev/null; then
         echo "Required dependencies are missing in the virtual environment."
-        echo "Please run: source $VENV_DIR/bin/activate && pip install -r requirements.txt"
+        echo "Please run: source $VENV_DIR/bin/activate && pip install -r $REQUIREMENTS_FILE"
         exit 1
     fi
     exec python -m cli.main "\$@"
@@ -151,10 +160,10 @@ EOF
 
 function uninstall() {
     print_boxed "Uninstalling DeskCrafter"
+    sudo rm -rf "$INSTALL_PREFIX"
     sudo rm -f "$LAUNCHER"
     sudo rm -f "$DESKTOP_ENTRY"
-    info "Removed launcher and desktop entry."
-    echo "(Optional) Remove virtual environment with: rm -rf $VENV_DIR"
+    info "Removed app files, launcher, and desktop entry."
     info "Uninstall complete."
 }
 
@@ -164,6 +173,7 @@ function install() {
     check_python
     check_pip
     check_requirements
+    copy_project_files
     create_venv
     install_deps
     create_launcher
