@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtCore import Qt
 import os
+import json
 
 from cli.logic.desktop_entry import DesktopEntry
 from cli.config import (
@@ -68,6 +69,19 @@ class MainWindow(QWidget):
         add_btn.setFixedSize(140, 40)
         add_btn.clicked.connect(lambda: self.clear_form(status="New entry form ready"))
         topbar.addWidget(add_btn)
+
+        # --- Import/Export buttons ---
+        export_btn = QPushButton("Export")
+        export_btn.setFixedSize(90, 40)
+        export_btn.clicked.connect(self.export_entries)
+        topbar.addWidget(export_btn)
+
+        import_btn = QPushButton("Import")
+        import_btn.setFixedSize(90, 40)
+        import_btn.clicked.connect(self.import_entries)
+        topbar.addWidget(import_btn)
+        # --- End Import/Export buttons ---
+
         close_btn = QPushButton("✕")
         close_btn.setFixedSize(40, 40)
         close_btn.clicked.connect(self.close)
@@ -329,6 +343,63 @@ class MainWindow(QWidget):
         self.set_status(f"Created/Updated entry: {entry.name}")
         self.load_entries()
         self.clear_form(status="New entry form ready")
+
+    def export_entries(self):
+        if not self.entries:
+            QMessageBox.information(self, "Export", "No entries to export.")
+            return
+        options = QFileDialog.Options()
+        file_name, _ = QFileDialog.getSaveFileName(
+            self, "Export Entries", "deskcrafter-entries.json", "JSON Files (*.json)", options=options
+        )
+        if file_name:
+            try:
+                data = [
+                    {
+                        "name": e.name,
+                        "comment": e.comment,
+                        "category": e.category,
+                        "exec_path": e.exec_path,
+                        "icon_path": e.icon_path,
+                        "terminal": e.terminal,
+                    }
+                    for e in self.entries
+                ]
+                with open(file_name, "w") as f:
+                    json.dump(data, f, indent=2)
+                self.set_status(f"Exported {len(data)} entries.")
+            except Exception as ex:
+                QMessageBox.warning(self, "Export Error", f"Failed to export: {ex}")
+
+    def import_entries(self):
+        options = QFileDialog.Options()
+        file_name, _ = QFileDialog.getOpenFileName(
+            self, "Import Entries", "", "JSON Files (*.json)", options=options
+        )
+        if file_name:
+            try:
+                with open(file_name, "r") as f:
+                    data = json.load(f)
+                count = 0
+                for entry in data:
+                    # Defensive: skip if missing required fields
+                    if not entry.get("name") or not entry.get("exec_path"):
+                        continue
+                    # Save as new DesktopEntry (overwrites if name matches)
+                    de = DesktopEntry(
+                        name=entry.get("name", ""),
+                        comment=entry.get("comment", ""),
+                        category=entry.get("category", "Other"),
+                        exec_path=entry.get("exec_path", ""),
+                        icon_path=entry.get("icon_path", ""),
+                        terminal=entry.get("terminal", False),
+                    )
+                    de.save()
+                    count += 1
+                self.set_status(f"Imported {count} entries.")
+                self.load_entries()
+            except Exception as ex:
+                QMessageBox.warning(self, "Import Error", f"Failed to import: {ex}")
 
     def update_stats(self):
         count = len(self.entries)
