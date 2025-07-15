@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import (
     QWidget, QLabel, QLineEdit, QPushButton, QFileDialog, QVBoxLayout, QHBoxLayout,
-    QMessageBox, QComboBox, QListWidget, QListWidgetItem, QFrame, QScrollArea, QSizePolicy, QCheckBox
+    QMessageBox, QComboBox, QListWidget, QListWidgetItem, QFrame, QScrollArea, QSizePolicy, QCheckBox,
+    QScrollBar, QButtonGroup, QRadioButton, QTextEdit, QDialog, QDialogButtonBox
 )
 from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtCore import Qt, QSize
@@ -29,31 +30,35 @@ class MainWindow(QWidget):
         self.filtered_entries = []
         self.selected_entry = None
         self.status_event = ""
+        self.selected_categories = []  # Store selected categories
         self.setup_ui()
         self.setStyleSheet(open(STYLE_PATH).read())
         self.load_entries()
 
     def setup_ui(self):
+        """Set up the main UI layout and widgets."""
         outer = QVBoxLayout(self)
         outer.setContentsMargins(18, 18, 18, 18)
         outer.setSpacing(8)
         outer.addLayout(self._create_topbar())
-
         split = QHBoxLayout()
-        split.setSpacing(12)  # Increase spacing between sidebar and content area
+        split.setSpacing(12)
         split.addWidget(self._create_sidebar())
         split.addWidget(self._create_content_area(), 1)
         outer.addLayout(split, 1)
+        self._setup_stats_bar(outer)
+        self._connect_signals()
 
+    def _setup_stats_bar(self, layout: QVBoxLayout) -> None:
         self.stats_bar = QLabel()
         self.stats_bar.setObjectName("StatsBar")
-        self.stats_bar.setAlignment(Qt.AlignCenter)
+        self.stats_bar.setAlignment(Qt.AlignCenter)  # type: ignore
         self.stats_bar.setStyleSheet("padding: 10px 16px; font-size: 14px; color: #aaa;")
-        outer.addWidget(self.stats_bar)
+        layout.addWidget(self.stats_bar)
 
+    def _connect_signals(self) -> None:
         self.name_edit.textChanged.connect(self.update_preview)
         self.comment_edit.textChanged.connect(self.update_preview)
-        self.category_combo.currentTextChanged.connect(self.update_preview)
         self.exe_edit.textChanged.connect(self.update_preview)
         self.icon_edit.textChanged.connect(self.update_preview)
 
@@ -82,7 +87,7 @@ class MainWindow(QWidget):
 
         close_btn = QPushButton("✕")
         close_btn.setFixedSize(40, 40)
-        close_btn.clicked.connect(self.close)
+        close_btn.clicked.connect(self.close)  # type: ignore
         close_btn.setObjectName("CloseButton")
         topbar.addWidget(close_btn)
         return topbar
@@ -176,9 +181,6 @@ class MainWindow(QWidget):
         self.comment_edit = QLineEdit()
         self.comment_edit.setPlaceholderText("Description")
         self.comment_edit.setStyleSheet(edit_style)
-        self.category_combo = QComboBox()
-        self.category_combo.addItems(CATEGORY_LIST)
-        self.category_combo.setStyleSheet(edit_style)
 
         exe_layout = QHBoxLayout()
         exe_layout.setSpacing(4)
@@ -187,7 +189,7 @@ class MainWindow(QWidget):
         self.exe_edit.setStyleSheet(edit_style)
         exe_btn = QPushButton("Browse")
         exe_btn.setFixedSize(90, 42)
-        exe_btn.setStyleSheet("font-size:14px;")
+        exe_btn.setStyleSheet("font-size:14px; margin-left:8px;")
         exe_btn.clicked.connect(self.pick_executable)
         exe_layout.addWidget(self.exe_edit)
         exe_layout.addWidget(exe_btn)
@@ -199,7 +201,7 @@ class MainWindow(QWidget):
         self.icon_edit.setStyleSheet(edit_style)
         icon_btn = QPushButton("Browse")
         icon_btn.setFixedSize(90, 42)
-        icon_btn.setStyleSheet("font-size:14px;")
+        icon_btn.setStyleSheet("font-size:14px; margin-left:8px;")
         icon_btn.clicked.connect(self.pick_icon)
         icon_layout.addWidget(self.icon_edit)
         icon_layout.addWidget(icon_btn)
@@ -208,12 +210,93 @@ class MainWindow(QWidget):
         form_card_layout.addWidget(self.name_edit)
         form_card_layout.addWidget(QLabel("Comment:"))
         form_card_layout.addWidget(self.comment_edit)
-        form_card_layout.addWidget(QLabel("Category:"))
-        form_card_layout.addWidget(self.category_combo)
         form_card_layout.addWidget(QLabel("Executable:"))
         form_card_layout.addLayout(exe_layout)
         form_card_layout.addWidget(QLabel("Icon:"))
         form_card_layout.addLayout(icon_layout)
+        form_card_layout.addWidget(QLabel("Categories:"))
+        
+        # Category selection
+        category_row = QHBoxLayout()
+        category_row.setSpacing(10)
+        self.category_combo = QComboBox()
+        self.category_combo.addItems(CATEGORY_LIST)
+        self.category_combo.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.category_combo.setStyleSheet(f"""
+            QComboBox {{
+                font-size: 14px;
+                min-height: 28px;
+                min-width: 220px;
+                padding: 4px 12px;
+                border: 1px solid #434c5e;
+                border-radius: 6px;
+                background: #2e3440;
+                color: #d8dee9;
+            }}
+        """)
+        add_category_btn = QPushButton("Add")
+        add_category_btn.setFixedSize(70, 42)
+        add_category_btn.setStyleSheet("""
+            QPushButton {
+                font-size: 14px;
+                font-weight: 500;
+                background: #5e81ac;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                padding: 6px 12px;
+            }
+            QPushButton:hover {
+                background: #81a1c1;
+            }
+            QPushButton:pressed {
+                background: #4c566a;
+            }
+        """)
+        add_category_btn.clicked.connect(self.add_category)
+        add_custom_btn = QPushButton("Custom")
+        add_custom_btn.setFixedSize(75, 42)
+        add_custom_btn.setStyleSheet("""
+            QPushButton {
+                font-size: 14px;
+                font-weight: 500;
+                background: #5e81ac;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                padding: 6px 12px;
+            }
+            QPushButton:hover {
+                background: #81a1c1;
+            }
+            QPushButton:pressed {
+                background: #4c566a;
+            }
+        """)
+        add_custom_btn.clicked.connect(self.add_custom_category)
+        category_row.addWidget(self.category_combo)
+        category_row.addWidget(add_category_btn)
+        category_row.addWidget(add_custom_btn)
+
+        # Horizontal scroll area for selected categories
+        self.selected_categories_widget = QWidget()
+        self.selected_categories_layout = QHBoxLayout(self.selected_categories_widget)
+        self.selected_categories_layout.setContentsMargins(0, 2, 0, 9)
+        self.selected_categories_layout.setSpacing(6)
+        self.selected_categories_layout.setAlignment(Qt.AlignLeft)  # type: ignore
+        self.selected_categories_widget.setLayout(self.selected_categories_layout) 
+
+        self.selected_categories_scroll = QScrollArea()
+        self.selected_categories_scroll.setWidgetResizable(True)
+        self.selected_categories_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)  # type: ignore
+        self.selected_categories_scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)  # type: ignore
+        self.selected_categories_scroll.setFrameShape(QFrame.NoFrame)
+        self.selected_categories_scroll.setWidget(self.selected_categories_widget)
+        self.selected_categories_scroll.setFixedHeight(48)
+        self.selected_categories_scroll.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+
+        category_row.addWidget(self.selected_categories_scroll, 1)
+        form_card_layout.addLayout(category_row)
 
         self.terminal_checkbox = QCheckBox("Run in terminal")
         self.terminal_checkbox.setChecked(False)
@@ -241,13 +324,13 @@ class MainWindow(QWidget):
         preview_layout.setSpacing(12)
         self.icon_preview = QLabel()
         self.icon_preview.setFixedSize(50, 50)
-        self.icon_preview.setAlignment(Qt.AlignTop | Qt.AlignHCenter)
+        self.icon_preview.setAlignment(Qt.AlignTop | Qt.AlignHCenter)  # type: ignore
         preview_layout.addWidget(self.icon_preview)
         scroll_area = QScrollArea()
         scroll_area.setWidgetResizable(True)
         self.preview_text = QLabel()
         self.preview_text.setWordWrap(True)
-        self.preview_text.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        self.preview_text.setTextInteractionFlags(Qt.TextSelectableByMouse)  # type: ignore
         self.preview_text.setStyleSheet("font-family: monospace; background: #181a20; border-radius: 6px; padding: 8px; font-size:13px;")
         scroll_area.setWidget(self.preview_text)
         preview_layout.addWidget(scroll_area)
@@ -257,7 +340,111 @@ class MainWindow(QWidget):
         content_frame.setLayout(content_layout)
         return content_frame
 
-    def set_status(self, text):
+    def add_category(self):
+        """Add the selected category from the combo box."""
+        category = self.category_combo.currentText()
+        if category and category not in self.selected_categories:
+            self.selected_categories.append(category)
+            self.update_categories_display()
+            self.update_preview()
+            self.set_status(f"Added category: {category}")
+
+    def add_custom_category(self):
+        """Open dialog to add a custom category."""
+        dialog = CategoryDialog(self)
+        if dialog.exec_() == QDialog.Accepted:
+            category = dialog.get_category()
+            if category and category not in self.selected_categories:
+                self.selected_categories.append(category)
+                self.update_categories_display()
+                self.update_preview()
+                self.set_status(f"Added custom category: {category}")
+
+    def update_categories_display(self) -> None:
+        """Update the display of selected categories as cards."""
+        # Clear existing category cards
+        for i in reversed(range(self.selected_categories_layout.count())):
+            item = self.selected_categories_layout.itemAt(i)
+            if item and item.widget():
+                w = item.widget()
+                if w is not None:
+                    w.deleteLater()
+        # Create cards for each selected category (left-aligned)
+        for category in self.selected_categories:
+            card = self.create_category_card(category)
+            self.selected_categories_layout.addWidget(card)
+
+    def create_category_card(self, category: str) -> QFrame:
+        """Create a larger, colorful card widget for a category with an X button."""
+        card = QFrame()
+        card.setStyleSheet("""
+            QFrame {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #5e81ac, stop:1 #88c0d0);
+                border: 2px solid #4c566a;
+                border-radius: 10px;
+                padding: 0;
+                min-height: 32px;
+                max-height: 32px;
+                margin: 0;
+            }
+            QFrame:hover {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #81a1c1, stop:1 #8fbcbb);
+                border: 2px solid #88c0d0;
+            }
+        """)
+        card_layout = QHBoxLayout(card)
+        card_layout.setContentsMargins(14, 0, 10, 0)
+        card_layout.setSpacing(8)
+        card_layout.setAlignment(Qt.AlignVCenter)  # type: ignore
+        label = QLabel(category)
+        label.setStyleSheet("""
+            color: #2e3440;
+            font-size: 14px;
+            font-weight: 600;
+            background: none;
+            border: none;
+            padding: 0 2px;
+            margin: 0;
+        """)
+        label.setAlignment(Qt.AlignVCenter | Qt.AlignHCenter)  # type: ignore
+        card_layout.addWidget(label)
+        remove_btn = QPushButton("×")
+        remove_btn.setFixedSize(20, 20)
+        remove_btn.setStyleSheet("""
+            QPushButton {
+                background: #bf616a;
+                color: white;
+                border: none;
+                border-radius: 10px;
+                font-size: 13px;
+                font-weight: bold;
+                margin: 0px;
+                padding: 0px;
+                min-width: 20px;
+                min-height: 20px;
+            }
+            QPushButton:hover {
+                background: #d08770;
+                color: #ffffff;
+            }
+            QPushButton:pressed {
+                background: #a94442;
+            }
+        """)
+        remove_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        remove_btn.clicked.connect(lambda: self.remove_category(category))
+        card_layout.addWidget(remove_btn)
+        return card
+
+    def remove_category(self, category: str):
+        """Remove a specific category."""
+        if category in self.selected_categories:
+            self.selected_categories.remove(category)
+            self.update_categories_display()
+            self.update_preview()
+            self.set_status(f"Removed category: {category}")
+
+    def set_status(self, text: str):
         self.status_event = text
         self.update_stats()
 
@@ -281,47 +468,56 @@ class MainWindow(QWidget):
             icon_path = resolve_icon_path(entry.icon_path)
             if icon_path:
                 item.setIcon(QIcon(icon_path))
-            item.setData(Qt.UserRole, entry)
+            item.setData(Qt.ItemDataRole.UserRole, entry)
             self.entry_list.addItem(item)
         if not getattr(self, "_filtering", False):
             self.set_status("Updated entry list")
 
-    def filter_entries(self, text):
+    def filter_entries(self, text: str):
         self._filtering = True
         self.filtered_entries = [entry for entry in self.entries if text.lower() in entry.name.lower()]
         self.set_status(f"Filtered entries: '{text}'")
         self.update_entry_list()
         self._filtering = False
 
+    def fill_form_with_entry(self, entry):
+        """Fill the form fields with the given DesktopEntry object."""
+        self.name_edit.setText(entry.name)
+        self.comment_edit.setText(entry.comment)
+        self.exe_edit.setText(entry.exec_path)
+        self.icon_edit.setText(entry.icon_path)
+        self.terminal_checkbox.setChecked(getattr(entry, "terminal", False))
+        # Handle categories
+        self.selected_categories = entry.categories.copy() if hasattr(entry, 'categories') else [entry.category] if hasattr(entry, 'category') else ["Other"]
+        self.update_categories_display()
+        self.set_status(f"Filled form with: {entry.name}")
+        self.update_preview()
+
     def on_entry_selected(self):
         if not self.entry_list.selectedItems():
             self.selected_entry = None
             self.set_status("No entry selected")
+            self.selected_entry = None
             return
-        self.selected_entry = self.entry_list.selectedItems()[0].data(Qt.UserRole)
-        self.set_status(f"Selected entry: {self.selected_entry.name}")
-        self.fill_form_with_entry(self.selected_entry)
+        item = self.entry_list.selectedItems()[0]
+        entry = item.data(Qt.ItemDataRole.UserRole)
+        self.selected_entry = entry
+        self.set_status(f"Selected entry: {entry.name}")
+        self.fill_form_with_entry(entry)
 
-    def fill_form_with_entry(self, entry):
-        self.name_edit.setText(entry.name)
-        self.comment_edit.setText(entry.comment)
-        self.category_combo.setCurrentText(entry.category)
-        self.exe_edit.setText(entry.exec_path)
-        self.icon_edit.setText(entry.icon_path)
-        self.terminal_checkbox.setChecked(getattr(entry, "terminal", False))
-        self.set_status(f"Filled form with: {entry.name}")
-        self.update_preview()
-
-    def clear_form(self, status="New entry form ready"):
+    def clear_form(self, status: str = "New entry form ready"):
         self.selected_entry = None
         self.name_edit.clear()
         self.comment_edit.clear()
-        self.category_combo.setCurrentIndex(0)
         self.exe_edit.clear()
         self.icon_edit.clear()
         self.preview_text.clear()
         self.icon_preview.clear()
+        self.selected_categories = []
+        self.update_categories_display()
         self.set_status(status)
+        if hasattr(self, 'entry_list'):
+            self.entry_list.clearSelection()
 
     def delete_selected_entry(self):
         if not self.selected_entry:
@@ -346,30 +542,46 @@ class MainWindow(QWidget):
     def create_or_update_entry(self):
         name = self.name_edit.text().strip()
         comment = self.comment_edit.text().strip()
-        category = self.category_combo.currentText()
         executable = self.exe_edit.text().strip()
         icon = self.icon_edit.text().strip()
         terminal = self.terminal_checkbox.isChecked()
 
         if not name or not executable:
-            QMessageBox.warning(self, "Input Error", "Please fill in all fields marked with *")
+            QMessageBox.warning(self, "Input Error", "Please fill in all required fields")
             self.set_status("Input error: missing required fields")
             return
 
         if not icon:
             icon = ICON_PATH
 
+        if not self.selected_categories:
+            self.selected_categories = ["Other"]
+
         exec_path = get_exec_path(executable)
 
         entry = DesktopEntry(
             name=name,
             comment=comment,
+            categories=self.selected_categories,
             exec_path=exec_path,
             icon_path=icon,
-            category=category,
             terminal=terminal
         )
+
+        # --- Fix: Remove old file if renaming an existing entry ---
+        if self.selected_entry is not None:
+            old_name = self.selected_entry.name
+            if old_name != name:
+                old_fname = f"{old_name.lower().replace(' ', '_')}.desktop"
+                old_fpath = os.path.join(DESKTOP_DIR, old_fname)
+                if os.path.exists(old_fpath):
+                    try:
+                        os.remove(old_fpath)
+                    except Exception as ex:
+                        print(f"[DeskCrafter] Failed to remove old entry: {ex}")
+        
         entry.save()
+
         self.set_status(f"Created/Updated entry: {entry.name}")
         self.load_entries()
         self.clear_form(status="New entry form ready")
@@ -388,7 +600,7 @@ class MainWindow(QWidget):
                     {
                         "name": e.name,
                         "comment": e.comment,
-                        "category": e.category,
+                        "categories": e.categories if hasattr(e, 'categories') else [e.category] if hasattr(e, 'category') else ["Other"],
                         "exec_path": e.exec_path,
                         "icon_path": e.icon_path,
                         "terminal": e.terminal,
@@ -415,11 +627,19 @@ class MainWindow(QWidget):
                     # Defensive: skip if missing required fields
                     if not entry.get("name") or not entry.get("exec_path"):
                         continue
+                    
+                    # Handle categories (backward compatibility)
+                    categories = entry.get("categories", [])
+                    if not categories and entry.get("category"):
+                        categories = [entry.get("category")]
+                    if not categories:
+                        categories = ["Other"]
+                    
                     # Save as new DesktopEntry (overwrites if name matches)
                     de = DesktopEntry(
                         name=entry.get("name", ""),
                         comment=entry.get("comment", ""),
-                        category=entry.get("category", "Other"),
+                        categories=categories,
                         exec_path=entry.get("exec_path", ""),
                         icon_path=entry.get("icon_path", ""),
                         terminal=entry.get("terminal", False),
@@ -441,22 +661,27 @@ class MainWindow(QWidget):
     def update_preview(self):
         name = self.name_edit.text().strip()
         comment = self.comment_edit.text().strip()
-        category = self.category_combo.currentText()
         executable = self.exe_edit.text().strip()
         icon = self.icon_edit.text().strip()
         terminal = self.terminal_checkbox.isChecked()
 
         preview_icon = icon if icon else ICON_PATH
         exec_path = get_exec_path(executable)
+        
+        # Format categories for preview
+        categories_str = ";".join(self.selected_categories) + ";" if self.selected_categories else "Other;"
+        
         self.preview_text.setText(
-            f"[Desktop Entry]\nVersion=1.0\nName={name}\nComment={comment}\nCategory={category};\nExec={exec_path}\nIcon={preview_icon}\nTerminal={'true' if terminal else 'false'}"
+            f"[Desktop Entry]\nVersion=1.0\nName={name}\nComment={comment}\nCategories={categories_str}\nExec={exec_path}\nIcon={preview_icon}\nTerminal={'true' if terminal else 'false'}"
         )
 
         icon_path = resolve_icon_path(preview_icon)
         if icon_path:
             pixmap = QPixmap(icon_path)
             if not pixmap.isNull():
-                self.icon_preview.setPixmap(pixmap.scaled(50, 50, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+                self.icon_preview.setPixmap(
+                    pixmap.scaled(50, 50, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+                )
             else:
                 self.icon_preview.clear()
         else:
@@ -477,9 +702,37 @@ class MainWindow(QWidget):
             self,
             "Select Icon",
             "",
-            "All Files (*);;Image Files (*.png;*.jpg;*.jpeg;*.svg;*.xpm)",
+            "All Files (*);;Image Files (*.png;*.jpg;*.jpeg;*.svg;*.xpm;*.webp)",
             options=options
         )
         if file_name:
             self.icon_edit.setText(file_name)
             self.set_status(f"Picked icon: {os.path.basename(file_name)}")
+
+class CategoryDialog(QDialog):
+    """Dialog for adding custom categories."""
+    
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Add Custom Category")
+        self.setFixedSize(300, 150)
+        self.setModal(True)
+        
+        layout = QVBoxLayout(self)
+        
+        self.category_edit = QLineEdit()
+        self.category_edit.setPlaceholderText("Enter category name...")
+        self.category_edit.setStyleSheet("font-size: 14px; padding: 8px;")
+        layout.addWidget(QLabel("Category Name:"))
+        layout.addWidget(self.category_edit)
+        
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+        layout.addWidget(buttons)
+        
+        self.category_edit.returnPressed.connect(self.accept)
+        self.category_edit.setFocus()
+    
+    def get_category(self) -> str:
+        return self.category_edit.text().strip()

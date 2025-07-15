@@ -4,10 +4,14 @@ import os
 class DesktopEntry:
     """Represents a .desktop entry for DeskCrafter."""
 
-    def __init__(self, name, comment, category, exec_path, icon_path, terminal=False, is_deskcrafter=True):
+    def __init__(self, name, comment, categories, exec_path, icon_path, terminal=False, is_deskcrafter=True):
         self.name = name
         self.comment = comment
-        self.category = category
+        # Handle both string and list for backward compatibility
+        if isinstance(categories, str):
+            self.categories = [cat.strip() for cat in categories.split(';') if cat.strip()]
+        else:
+            self.categories = categories if categories else ["Other"]
         self.exec_path = exec_path
         self.icon_path = icon_path
         self.terminal = terminal
@@ -38,6 +42,8 @@ class DesktopEntry:
         """Generate the content of the .desktop file."""
         if exec_path is None:
             exec_path = self.exec_path
+        # Join categories with semicolon and add semicolon at the end
+        categories_str = ";".join(self.categories) + ";"
         return (
             "[Desktop Entry]\n"
             "Version=1.0\n"
@@ -47,7 +53,7 @@ class DesktopEntry:
             f"Exec={exec_path}\n"
             f"TryExec={exec_path.split()[0]}\n"
             f"Icon={self.icon_path}\n"
-            f"Categories={self.category};\n"
+            f"Categories={categories_str}\n"
             f"Terminal={'true' if self.terminal else 'false'}\n"
             "X-DeskCrafter=true\n"
             "StartupWMClass=DeskCrafter\n"
@@ -63,10 +69,17 @@ class DesktopEntry:
                     if "=" in line and not line.startswith("#"):
                         k, v = line.strip().split("=", 1)
                         data[k] = v
+ 
+            # Parse categories from the desktop file
+            categories_str = data.get("Categories", "")
+            categories = [cat.strip() for cat in categories_str.split(';') if cat.strip()]
+            if not categories:
+                categories = ["Other"]
+            
             return DesktopEntry(
                 name=data.get("Name", ""),
                 comment=data.get("Comment", ""),
-                category=data.get("Categories", "").replace(";", "") or "Other",
+                categories=categories,
                 exec_path=data.get("Exec", ""),
                 icon_path=data.get("Icon", ""),
                 terminal=(data.get("Terminal", "false").lower() == "true"),
@@ -77,7 +90,8 @@ class DesktopEntry:
 
     def to_line(self):
         """Serialize the entry to a single line (for legacy/other uses)."""
-        return f"{self.name}|||{self.comment}|||{self.category}|||{self.exec_path}|||{self.icon_path}"
+        categories_str = ";".join(self.categories)
+        return f"{self.name}|||{self.comment}|||{categories_str}|||{self.exec_path}|||{self.icon_path}"
 
     @staticmethod
     def from_line(line):

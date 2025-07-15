@@ -3,16 +3,19 @@ import shutil
 import stat
 
 from cli.config import PYTHON_EXECUTABLE
+from typing import Optional
 
 
-def is_python_interpreter(path):
+def is_python_interpreter(path: str) -> bool:
+    """Check if the given path is a Python interpreter."""
     if not os.path.isfile(path) or not os.access(path, os.X_OK):
         return False
     basename = os.path.basename(path).lower()
     return basename.startswith("python") and not path.lower().endswith(".py")
 
 
-def get_exec_path(executable):
+def get_exec_path(executable: str) -> str:
+    """Return the execution path for the given executable, handling .py files and venv."""
     if (
         is_python_interpreter(executable)
         or (executable and not executable.lower().endswith(".py"))
@@ -20,7 +23,7 @@ def get_exec_path(executable):
     ):
         return executable
     elif executable.lower().endswith(".py"):
-        venv_python = None
+        venv_python: Optional[str] = None
         script_dir = os.path.dirname(os.path.abspath(executable))
         for venv_name in ["venv", ".venv", "env", ".env"]:
             venv_dir = os.path.join(script_dir, venv_name)
