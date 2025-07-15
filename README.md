@@ -10,8 +10,9 @@ DeskCrafter aims to make it effortless for users to create and manage applicatio
 
 ---
 
-> ⚡ **Important:**  
-> DeskCrafter can handle both Shell scripts (`.sh`) and Python scripts (`.py`) as launchable files. Simply select your script when creating a new entry(just make sure your scripts are working properly).
+## ⚡ **Important:**
+
+DeskCrafter can handle files like Shell scripts (`.sh`), Python scripts (`.py`), AppImages (.AppImage) as launchable files. Simply select your script when creating a new entry(just make sure your scripts are working properly).
 
 ---
 
