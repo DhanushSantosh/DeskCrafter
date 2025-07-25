@@ -9,8 +9,8 @@ import os
 import json
 
 from cli.logic.desktop_entry import DesktopEntry
-from cli.config import (
-    SIDEBAR_WIDTH, APP_TITLE, ICON_PATH, STYLE_PATH, DESKTOP_DIR, CATEGORY_LIST
+from cli.config.config import (
+    SIDEBAR_WIDTH, APP_TITLE, ICON_PATH, STYLE_PATH, DESKTOP_DIR, CATEGORY_LIST, DEFAULT_ENTRY_ICON_PATH
 )
 from cli.utils.utils import get_exec_path, resolve_icon_path
 
@@ -24,16 +24,29 @@ class MainWindow(QWidget):
         super().__init__()
         self.setWindowTitle(APP_TITLE)
         self.setWindowIcon(QIcon(ICON_PATH))
-        self.setMaximumSize(1280, 850)
+        self.setMinimumSize(950, 650)  
         self.resize(1280, 850)
         self.entries = []
         self.filtered_entries = []
         self.selected_entry = None
         self.status_event = ""
-        self.selected_categories = []  # Store selected categories
+        self.selected_categories = []
+        self.preview_label = None
+        self.preview_frame = None
         self.setup_ui()
         self.setStyleSheet(open(STYLE_PATH).read())
         self.load_entries()
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        # Hide preview if height < 800, show otherwise
+        if self.preview_label and self.preview_frame:
+            if self.height() < 800:
+                self.preview_label.hide()
+                self.preview_frame.hide()
+            else:
+                self.preview_label.show()
+                self.preview_frame.show()
 
     def setup_ui(self):
         """Set up the main UI layout and widgets."""
@@ -313,13 +326,14 @@ class MainWindow(QWidget):
         btn_layout.addWidget(self.create_btn)
         form_card_layout.addLayout(btn_layout)
 
-        preview_label = QLabel("Live Preview:")
-        preview_label.setStyleSheet("font-weight: bold; font-size:14px;")
-        form_card_layout.addWidget(preview_label)
-        preview_frame = QFrame()
-        preview_frame.setObjectName("PreviewFrame")
-        preview_frame.setFrameShape(QFrame.StyledPanel)
-        preview_layout = QHBoxLayout(preview_frame)
+        # --- Live Preview Section ---
+        self.preview_label = QLabel("Live Preview:")
+        self.preview_label.setStyleSheet("font-weight: bold; font-size:14px; width: 150px; height: 150px;")
+        form_card_layout.addWidget(self.preview_label)
+        self.preview_frame = QFrame()
+        self.preview_frame.setObjectName("PreviewFrame")
+        self.preview_frame.setFrameShape(QFrame.StyledPanel)
+        preview_layout = QHBoxLayout(self.preview_frame)
         preview_layout.setContentsMargins(12, 12, 12, 12)
         preview_layout.setSpacing(12)
         self.icon_preview = QLabel()
@@ -334,7 +348,7 @@ class MainWindow(QWidget):
         self.preview_text.setStyleSheet("font-family: monospace; background: #181a20; border-radius: 6px; padding: 8px; font-size:13px;")
         scroll_area.setWidget(self.preview_text)
         preview_layout.addWidget(scroll_area)
-        form_card_layout.addWidget(preview_frame)
+        form_card_layout.addWidget(self.preview_frame)
 
         content_layout.addWidget(form_card)
         content_frame.setLayout(content_layout)
@@ -552,7 +566,7 @@ class MainWindow(QWidget):
             return
 
         if not icon:
-            icon = ICON_PATH
+            icon = DEFAULT_ENTRY_ICON_PATH
 
         if not self.selected_categories:
             self.selected_categories = ["Other"]
@@ -665,7 +679,7 @@ class MainWindow(QWidget):
         icon = self.icon_edit.text().strip()
         terminal = self.terminal_checkbox.isChecked()
 
-        preview_icon = icon if icon else ICON_PATH
+        preview_icon = icon if icon else DEFAULT_ENTRY_ICON_PATH
         exec_path = get_exec_path(executable)
         
         # Format categories for preview
