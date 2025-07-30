@@ -1,10 +1,11 @@
 import os
+from cli.config.config import DEFAULT_ENTRY_ICON_PATH
 
 
 class DesktopEntry:
     """Represents a .desktop entry for DeskCrafter."""
 
-    def __init__(self, name, comment, categories, exec_path, icon_path, terminal=False, is_deskcrafter=True):
+    def __init__(self, name, comment, categories, exec_path, icon_path=None, terminal=False, is_deskcrafter=True):
         self.name = name
         self.comment = comment
         # Handle both string and list for backward compatibility
@@ -13,17 +14,15 @@ class DesktopEntry:
         else:
             self.categories = categories if categories else ["Other"]
         self.exec_path = exec_path
-        self.icon_path = icon_path
+        self.icon_path = icon_path if icon_path else DEFAULT_ENTRY_ICON_PATH
         self.terminal = terminal
         self.is_deskcrafter = is_deskcrafter
 
     def save(self):
         """Save the desktop entry as a .desktop file."""
-        # Remove quotes from exec_path for .desktop file
         exec_path = self.exec_path
         if exec_path.startswith('"') and exec_path.endswith('"'):
             exec_path = exec_path[1:-1]
-        # Remove quotes around each argument
         exec_path = " ".join(arg.strip('"') for arg in exec_path.split())
         desktop_dir = os.path.expanduser("~/.local/share/applications")
         if not os.path.exists(desktop_dir):
@@ -31,18 +30,14 @@ class DesktopEntry:
         filename = f"{self.name.lower().replace(' ', '_')}.desktop"
         filepath = os.path.join(desktop_dir, filename)
         content = self.generate_content(exec_path)
-        print(f"[DeskCrafter DEBUG] Writing .desktop file to: {filepath}")
-        print(f"[DeskCrafter DEBUG] Exec line: {exec_path}")
         with open(filepath, "w") as f:
             f.write(content)
         os.chmod(filepath, 0o755)
-        print(f"[DeskCrafter DEBUG] Set permissions 755 on: {filepath}")
 
     def generate_content(self, exec_path=None):
         """Generate the content of the .desktop file."""
         if exec_path is None:
             exec_path = self.exec_path
-        # Join categories with semicolon and add semicolon at the end
         categories_str = ";".join(self.categories) + ";"
         return (
             "[Desktop Entry]\n"
@@ -69,19 +64,17 @@ class DesktopEntry:
                     if "=" in line and not line.startswith("#"):
                         k, v = line.strip().split("=", 1)
                         data[k] = v
- 
-            # Parse categories from the desktop file
             categories_str = data.get("Categories", "")
             categories = [cat.strip() for cat in categories_str.split(';') if cat.strip()]
             if not categories:
                 categories = ["Other"]
-            
+            icon_path = data.get("Icon", "") or DEFAULT_ENTRY_ICON_PATH
             return DesktopEntry(
                 name=data.get("Name", ""),
                 comment=data.get("Comment", ""),
                 categories=categories,
                 exec_path=data.get("Exec", ""),
-                icon_path=data.get("Icon", ""),
+                icon_path=icon_path,
                 terminal=(data.get("Terminal", "false").lower() == "true"),
                 is_deskcrafter=(data.get("X-DeskCrafter", "false").lower() == "true")
             )

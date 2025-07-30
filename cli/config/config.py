@@ -1,10 +1,19 @@
+"""
+Configuration constants for DeskCrafter.
+"""
 import os
 
-SIDEBAR_WIDTH = 300
-APP_TITLE = "🖥️ DeskCrafter"
-ICON_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets", "icon.png")
-DEFAULT_ENTRY_ICON_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "doc.png")
-STYLE_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "ui", "style.qss")
-DESKTOP_DIR = os.path.expanduser("~/.local/share/applications")
-CATEGORY_LIST = ["Utility", "Development", "Game", "Multimedia", "Other"]
-PYTHON_EXECUTABLE = "python3"
+# UI constants
+def get_project_root() -> str:
+    return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+SIDEBAR_WIDTH: int = 300
+APP_TITLE: str = "\U0001F5A5\uFE0F DeskCrafter"
+ICON_PATH: str = os.path.join(get_project_root(), "assets", "icon.png")
+DEFAULT_ENTRY_ICON_PATH: str = os.path.join(get_project_root(), "imgs", "doc.png")
+STYLE_PATH: str = os.path.join(get_project_root(), "ui", "style.qss")
+
+# System/desktop integration
+DESKTOP_DIR: str = os.path.expanduser("~/.local/share/applications")
+CATEGORY_LIST: list[str] = ["Utility", "Development", "Game", "Multimedia", "Other"]
+PYTHON_EXECUTABLE: str = "python3"

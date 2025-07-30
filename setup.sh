@@ -146,12 +146,16 @@ function create_desktop_entry() {
 Version=1.0
 Type=Application
 Name=DeskCrafter
+GenericName=Desktop Entry Creator
 Comment=Linux Desktop Entry Creator
 Exec=$LAUNCHER
+TryExec=$LAUNCHER
 Icon=$ICON_PATH
 Terminal=false
 Categories=Utility;
 StartupWMClass=DeskCrafter
+MimeType=application/x-desktop;
+Keywords=desktop;entry;launcher;shortcut;app;
 EOF
     sudo mv "/tmp/$APP_NAME.desktop" "$DESKTOP_ENTRY"
     sudo chmod +x "$DESKTOP_ENTRY"

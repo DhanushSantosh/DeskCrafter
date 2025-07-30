@@ -7,24 +7,20 @@ from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtCore import Qt, QSize
 import os
 import json
-
+from typing import Optional
 from cli.logic.desktop_entry import DesktopEntry
 from cli.config.config import (
     SIDEBAR_WIDTH, APP_TITLE, ICON_PATH, STYLE_PATH, DESKTOP_DIR, CATEGORY_LIST, DEFAULT_ENTRY_ICON_PATH
 )
 from cli.utils.utils import get_exec_path, resolve_icon_path
 
-# Constants for UI
-PYTHON_EXECUTABLE = "python3" 
-
 class MainWindow(QWidget):
     """Main application window for DeskCrafter."""
-
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.setWindowTitle(APP_TITLE)
         self.setWindowIcon(QIcon(ICON_PATH))
-        self.setMinimumSize(950, 650)  
+        self.setMinimumSize(950, 650)
         self.resize(1280, 850)
         self.entries = []
         self.filtered_entries = []
@@ -37,9 +33,8 @@ class MainWindow(QWidget):
         self.setStyleSheet(open(STYLE_PATH).read())
         self.load_entries()
 
-    def resizeEvent(self, event):
+    def resizeEvent(self, event) -> None:
         super().resizeEvent(event)
-        # Hide preview if height < 800, show otherwise
         if self.preview_label and self.preview_frame:
             if self.height() < 800:
                 self.preview_label.hide()
@@ -48,7 +43,7 @@ class MainWindow(QWidget):
                 self.preview_label.show()
                 self.preview_frame.show()
 
-    def setup_ui(self):
+    def setup_ui(self) -> None:
         """Set up the main UI layout and widgets."""
         outer = QVBoxLayout(self)
         outer.setContentsMargins(18, 18, 18, 18)
@@ -354,7 +349,7 @@ class MainWindow(QWidget):
         content_frame.setLayout(content_layout)
         return content_frame
 
-    def add_category(self):
+    def add_category(self) -> None:
         """Add the selected category from the combo box."""
         category = self.category_combo.currentText()
         if category and category not in self.selected_categories:
@@ -363,7 +358,7 @@ class MainWindow(QWidget):
             self.update_preview()
             self.set_status(f"Added category: {category}")
 
-    def add_custom_category(self):
+    def add_custom_category(self) -> None:
         """Open dialog to add a custom category."""
         dialog = CategoryDialog(self)
         if dialog.exec_() == QDialog.Accepted:
@@ -450,7 +445,7 @@ class MainWindow(QWidget):
         card_layout.addWidget(remove_btn)
         return card
 
-    def remove_category(self, category: str):
+    def remove_category(self, category: str) -> None:
         """Remove a specific category."""
         if category in self.selected_categories:
             self.selected_categories.remove(category)
@@ -458,11 +453,11 @@ class MainWindow(QWidget):
             self.update_preview()
             self.set_status(f"Removed category: {category}")
 
-    def set_status(self, text: str):
+    def set_status(self, text: str) -> None:
         self.status_event = text
         self.update_stats()
 
-    def load_entries(self):
+    def load_entries(self) -> None:
         self.entries = []
         if os.path.exists(DESKTOP_DIR):
             for fname in os.listdir(DESKTOP_DIR):
@@ -475,7 +470,7 @@ class MainWindow(QWidget):
         self.set_status("Loaded entries")
         self.update_entry_list()
 
-    def update_entry_list(self):
+    def update_entry_list(self) -> None:
         self.entry_list.clear()
         for entry in self.filtered_entries:
             item = QListWidgetItem(entry.name)
@@ -487,14 +482,14 @@ class MainWindow(QWidget):
         if not getattr(self, "_filtering", False):
             self.set_status("Updated entry list")
 
-    def filter_entries(self, text: str):
+    def filter_entries(self, text: str) -> None:
         self._filtering = True
         self.filtered_entries = [entry for entry in self.entries if text.lower() in entry.name.lower()]
         self.set_status(f"Filtered entries: '{text}'")
         self.update_entry_list()
         self._filtering = False
 
-    def fill_form_with_entry(self, entry):
+    def fill_form_with_entry(self, entry) -> None:
         """Fill the form fields with the given DesktopEntry object."""
         self.name_edit.setText(entry.name)
         self.comment_edit.setText(entry.comment)
@@ -507,11 +502,10 @@ class MainWindow(QWidget):
         self.set_status(f"Filled form with: {entry.name}")
         self.update_preview()
 
-    def on_entry_selected(self):
+    def on_entry_selected(self) -> None:
         if not self.entry_list.selectedItems():
             self.selected_entry = None
             self.set_status("No entry selected")
-            self.selected_entry = None
             return
         item = self.entry_list.selectedItems()[0]
         entry = item.data(Qt.ItemDataRole.UserRole)
@@ -519,7 +513,7 @@ class MainWindow(QWidget):
         self.set_status(f"Selected entry: {entry.name}")
         self.fill_form_with_entry(entry)
 
-    def clear_form(self, status: str = "New entry form ready"):
+    def clear_form(self, status: str = "New entry form ready") -> None:
         self.selected_entry = None
         self.name_edit.clear()
         self.comment_edit.clear()
@@ -533,7 +527,7 @@ class MainWindow(QWidget):
         if hasattr(self, 'entry_list'):
             self.entry_list.clearSelection()
 
-    def delete_selected_entry(self):
+    def delete_selected_entry(self) -> None:
         if not self.selected_entry:
             self.set_status("No entry selected to delete")
             return
@@ -553,7 +547,7 @@ class MainWindow(QWidget):
         else:
             self.set_status("Delete cancelled")
 
-    def create_or_update_entry(self):
+    def create_or_update_entry(self) -> None:
         name = self.name_edit.text().strip()
         comment = self.comment_edit.text().strip()
         executable = self.exe_edit.text().strip()
@@ -600,7 +594,7 @@ class MainWindow(QWidget):
         self.load_entries()
         self.clear_form(status="New entry form ready")
 
-    def export_entries(self):
+    def export_entries(self) -> None:
         if not self.entries:
             QMessageBox.information(self, "Export", "No entries to export.")
             return
@@ -627,7 +621,7 @@ class MainWindow(QWidget):
             except Exception as ex:
                 QMessageBox.warning(self, "Export Error", f"Failed to export: {ex}")
 
-    def import_entries(self):
+    def import_entries(self) -> None:
         options = QFileDialog.Options()
         file_name, _ = QFileDialog.getOpenFileName(
             self, "Import Entries", "", "JSON Files (*.json)", options=options
@@ -665,14 +659,14 @@ class MainWindow(QWidget):
             except Exception as ex:
                 QMessageBox.warning(self, "Import Error", f"Failed to import: {ex}")
 
-    def update_stats(self):
+    def update_stats(self) -> None:
         count = len(self.entries)
         if self.status_event:
             self.stats_bar.setText(f"{count} entries total. {self.status_event}")
         else:
             self.stats_bar.setText(f"{count} entries total.")
 
-    def update_preview(self):
+    def update_preview(self) -> None:
         name = self.name_edit.text().strip()
         comment = self.comment_edit.text().strip()
         executable = self.exe_edit.text().strip()
@@ -701,7 +695,7 @@ class MainWindow(QWidget):
         else:
             self.icon_preview.clear()
 
-    def pick_executable(self):
+    def pick_executable(self) -> None:
         options = QFileDialog.Options()
         file_name, _ = QFileDialog.getOpenFileName(
             self, "Select Executable", "", "All Files (*);;Python Files (*.py);;Shell Scripts (*.sh)", options=options
@@ -710,7 +704,7 @@ class MainWindow(QWidget):
             self.exe_edit.setText(file_name)
             self.set_status(f"Picked executable: {os.path.basename(file_name)}")
 
-    def pick_icon(self):
+    def pick_icon(self) -> None:
         options = QFileDialog.Options()
         file_name, _ = QFileDialog.getOpenFileName(
             self,
