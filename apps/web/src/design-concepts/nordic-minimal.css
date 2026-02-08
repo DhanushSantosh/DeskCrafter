@@ -1,0 +1,755 @@
+/**
+ * DeskCrafter - Nordic Minimal Theme
+ * "Clarity through restraint"
+ *
+ * Inspired by Scandinavian design principles.
+ * Clean, airy, lots of whitespace with muted accents.
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  /* ============================================
+     BACKGROUNDS
+     ============================================ */
+  --nordic-bg-canvas: #FAFAFA;
+  --nordic-bg-surface: #FFFFFF;
+  --nordic-bg-elevated: #FFFFFF;
+  --nordic-bg-recessed: #F5F5F5;
+  --nordic-bg-hover: #F0F0F0;
+  --nordic-bg-active: #E8E8E8;
+
+  /* ============================================
+     TEXT COLORS
+     ============================================ */
+  --nordic-text-primary: #1A1A1A;
+  --nordic-text-secondary: #4A4A4A;
+  --nordic-text-tertiary: #7A7A7A;
+  --nordic-text-disabled: #ABABAB;
+  --nordic-text-inverse: #FFFFFF;
+
+  /* ============================================
+     ACCENT - Muted Teal
+     ============================================ */
+  --nordic-accent: #4A9B8C;
+  --nordic-accent-hover: #3D8275;
+  --nordic-accent-active: #326B61;
+  --nordic-accent-soft: #E8F4F1;
+  --nordic-accent-softer: #F2F9F7;
+
+  /* ============================================
+     BORDERS
+     ============================================ */
+  --nordic-border-subtle: #EBEBEB;
+  --nordic-border-default: #DCDCDC;
+  --nordic-border-strong: #C4C4C4;
+  --nordic-border-focus: #4A9B8C;
+
+  /* ============================================
+     SEMANTIC COLORS
+     ============================================ */
+  --nordic-success: #4A8C6A;
+  --nordic-success-soft: #E8F4ED;
+  --nordic-warning: #C4944A;
+  --nordic-warning-soft: #FEF7E8;
+  --nordic-error: #B84A4A;
+  --nordic-error-soft: #FAEBEB;
+  --nordic-info: #4A7A9B;
+  --nordic-info-soft: #EBF3F8;
+
+  /* ============================================
+     TYPOGRAPHY
+     ============================================ */
+  --nordic-font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --nordic-font-mono: "JetBrains Mono", "SF Mono", "Fira Code", monospace;
+
+  --nordic-text-xs: 11px;
+  --nordic-text-sm: 12px;
+  --nordic-text-base: 14px;
+  --nordic-text-md: 16px;
+  --nordic-text-lg: 18px;
+  --nordic-text-xl: 20px;
+  --nordic-text-2xl: 24px;
+  --nordic-text-3xl: 30px;
+
+  --nordic-weight-regular: 400;
+  --nordic-weight-medium: 500;
+  --nordic-weight-semibold: 600;
+
+  --nordic-leading-tight: 1.25;
+  --nordic-leading-normal: 1.5;
+  --nordic-leading-relaxed: 1.625;
+
+  --nordic-tracking-tight: -0.02em;
+  --nordic-tracking-normal: 0;
+  --nordic-tracking-wide: 0.02em;
+  --nordic-tracking-wider: 0.04em;
+
+  /* ============================================
+     BORDER RADIUS
+     ============================================ */
+  --nordic-radius-none: 0;
+  --nordic-radius-sm: 4px;
+  --nordic-radius-md: 6px;
+  --nordic-radius-lg: 8px;
+  --nordic-radius-xl: 12px;
+  --nordic-radius-full: 9999px;
+
+  /* ============================================
+     SHADOWS
+     ============================================ */
+  --nordic-shadow-none: none;
+  --nordic-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --nordic-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --nordic-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.05), 0 2px 4px rgba(0, 0, 0, 0.04);
+  --nordic-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.05), 0 4px 6px rgba(0, 0, 0, 0.03);
+  --nordic-shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.06), 0 8px 10px rgba(0, 0, 0, 0.04);
+  --nordic-shadow-focus: 0 0 0 3px rgba(74, 155, 140, 0.15);
+  --nordic-shadow-inset: inset 0 1px 2px rgba(0, 0, 0, 0.04);
+
+  /* ============================================
+     ANIMATION
+     ============================================ */
+  --nordic-duration-instant: 50ms;
+  --nordic-duration-fast: 100ms;
+  --nordic-duration-normal: 150ms;
+  --nordic-duration-slow: 200ms;
+  --nordic-duration-slower: 300ms;
+
+  --nordic-ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --nordic-ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --nordic-ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --nordic-ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* ============================================
+     SPACING
+     ============================================ */
+  --nordic-space-1: 4px;
+  --nordic-space-2: 8px;
+  --nordic-space-3: 12px;
+  --nordic-space-4: 16px;
+  --nordic-space-5: 20px;
+  --nordic-space-6: 24px;
+  --nordic-space-7: 32px;
+  --nordic-space-8: 40px;
+  --nordic-space-9: 48px;
+  --nordic-space-10: 56px;
+
+  /* ============================================
+     LAYOUT
+     ============================================ */
+  --nordic-sidebar-width: 240px;
+  --nordic-header-height: 64px;
+}
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+
+.nordic-theme {
+  background: var(--nordic-bg-canvas);
+  color: var(--nordic-text-secondary);
+  font-family: var(--nordic-font-sans);
+  font-size: var(--nordic-text-base);
+  line-height: var(--nordic-leading-normal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================
+   TYPOGRAPHY
+   ============================================ */
+
+.nordic-heading-1 {
+  font-size: var(--nordic-text-3xl);
+  font-weight: var(--nordic-weight-semibold);
+  color: var(--nordic-text-primary);
+  letter-spacing: var(--nordic-tracking-tight);
+  line-height: var(--nordic-leading-tight);
+}
+
+.nordic-heading-2 {
+  font-size: var(--nordic-text-2xl);
+  font-weight: var(--nordic-weight-semibold);
+  color: var(--nordic-text-primary);
+  letter-spacing: var(--nordic-tracking-tight);
+  line-height: var(--nordic-leading-tight);
+}
+
+.nordic-heading-3 {
+  font-size: var(--nordic-text-xl);
+  font-weight: var(--nordic-weight-medium);
+  color: var(--nordic-text-primary);
+  line-height: var(--nordic-leading-tight);
+}
+
+.nordic-heading-4 {
+  font-size: var(--nordic-text-lg);
+  font-weight: var(--nordic-weight-medium);
+  color: var(--nordic-text-primary);
+  line-height: var(--nordic-leading-tight);
+}
+
+.nordic-body {
+  font-size: var(--nordic-text-base);
+  color: var(--nordic-text-secondary);
+  line-height: var(--nordic-leading-normal);
+}
+
+.nordic-body-sm {
+  font-size: var(--nordic-text-sm);
+  color: var(--nordic-text-secondary);
+  line-height: var(--nordic-leading-normal);
+}
+
+.nordic-caption {
+  font-size: var(--nordic-text-xs);
+  color: var(--nordic-text-tertiary);
+  letter-spacing: var(--nordic-tracking-wide);
+}
+
+.nordic-label {
+  font-size: var(--nordic-text-xs);
+  font-weight: var(--nordic-weight-medium);
+  color: var(--nordic-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: var(--nordic-tracking-wider);
+}
+
+.nordic-mono {
+  font-family: var(--nordic-font-mono);
+}
+
+/* ============================================
+   CARDS
+   ============================================ */
+
+.nordic-card {
+  background: var(--nordic-bg-surface);
+  border: 1px solid var(--nordic-border-subtle);
+  border-radius: var(--nordic-radius-md);
+  box-shadow: var(--nordic-shadow-xs);
+  padding: var(--nordic-space-5);
+  transition:
+    box-shadow var(--nordic-duration-slow) var(--nordic-ease-default),
+    border-color var(--nordic-duration-slow) var(--nordic-ease-default);
+}
+
+.nordic-card:hover {
+  box-shadow: var(--nordic-shadow-sm);
+  border-color: var(--nordic-border-default);
+}
+
+.nordic-card--elevated {
+  box-shadow: var(--nordic-shadow-md);
+  border: none;
+}
+
+.nordic-card--interactive {
+  cursor: pointer;
+}
+
+.nordic-card--interactive:hover {
+  box-shadow: var(--nordic-shadow-md);
+}
+
+.nordic-card--selected {
+  border-color: var(--nordic-accent);
+  background: var(--nordic-accent-softer);
+}
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+
+.nordic-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--nordic-space-2);
+  border-radius: var(--nordic-radius-sm);
+  font-size: var(--nordic-text-base);
+  font-weight: var(--nordic-weight-medium);
+  height: 40px;
+  padding: 0 var(--nordic-space-4);
+  cursor: pointer;
+  transition: all var(--nordic-duration-normal) var(--nordic-ease-default);
+  border: none;
+  outline: none;
+}
+
+.nordic-btn:focus-visible {
+  box-shadow: var(--nordic-shadow-focus);
+}
+
+.nordic-btn--primary {
+  background: var(--nordic-accent);
+  color: var(--nordic-text-inverse);
+}
+
+.nordic-btn--primary:hover {
+  background: var(--nordic-accent-hover);
+}
+
+.nordic-btn--primary:active {
+  background: var(--nordic-accent-active);
+  transform: translateY(1px);
+}
+
+.nordic-btn--secondary {
+  background: transparent;
+  color: var(--nordic-text-secondary);
+  border: 1px solid var(--nordic-border-default);
+}
+
+.nordic-btn--secondary:hover {
+  background: var(--nordic-bg-hover);
+  border-color: var(--nordic-border-strong);
+}
+
+.nordic-btn--ghost {
+  background: transparent;
+  color: var(--nordic-text-secondary);
+}
+
+.nordic-btn--ghost:hover {
+  background: var(--nordic-bg-hover);
+}
+
+.nordic-btn--danger {
+  background: var(--nordic-error);
+  color: var(--nordic-text-inverse);
+}
+
+.nordic-btn--danger:hover {
+  background: #A43D3D;
+}
+
+.nordic-btn--sm {
+  height: 32px;
+  padding: 0 var(--nordic-space-3);
+  font-size: var(--nordic-text-sm);
+}
+
+.nordic-btn--lg {
+  height: 48px;
+  padding: 0 var(--nordic-space-6);
+  font-size: var(--nordic-text-md);
+}
+
+.nordic-btn--icon {
+  width: 40px;
+  padding: 0;
+}
+
+.nordic-btn--icon.nordic-btn--sm {
+  width: 32px;
+}
+
+/* ============================================
+   INPUTS
+   ============================================ */
+
+.nordic-input {
+  background: var(--nordic-bg-surface);
+  border: 1px solid var(--nordic-border-default);
+  border-radius: var(--nordic-radius-sm);
+  padding: var(--nordic-space-2) var(--nordic-space-3);
+  font-family: var(--nordic-font-sans);
+  font-size: var(--nordic-text-base);
+  color: var(--nordic-text-primary);
+  height: 40px;
+  width: 100%;
+  box-shadow: var(--nordic-shadow-inset);
+  transition:
+    border-color var(--nordic-duration-normal) var(--nordic-ease-default),
+    box-shadow var(--nordic-duration-normal) var(--nordic-ease-default);
+}
+
+.nordic-input::placeholder {
+  color: var(--nordic-text-disabled);
+}
+
+.nordic-input:hover {
+  border-color: var(--nordic-border-strong);
+}
+
+.nordic-input:focus {
+  border-color: var(--nordic-border-focus);
+  box-shadow: var(--nordic-shadow-focus), var(--nordic-shadow-inset);
+  outline: none;
+}
+
+.nordic-input--error {
+  border-color: var(--nordic-error);
+}
+
+.nordic-input--error:focus {
+  box-shadow: 0 0 0 3px rgba(184, 74, 74, 0.15), var(--nordic-shadow-inset);
+}
+
+.nordic-input-group {
+  position: relative;
+}
+
+.nordic-input-group__icon {
+  position: absolute;
+  left: var(--nordic-space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--nordic-text-tertiary);
+  pointer-events: none;
+}
+
+.nordic-input-group .nordic-input {
+  padding-left: 40px;
+}
+
+.nordic-textarea {
+  min-height: 100px;
+  height: auto;
+  padding: var(--nordic-space-3);
+  resize: vertical;
+}
+
+/* ============================================
+   SELECT
+   ============================================ */
+
+.nordic-select {
+  appearance: none;
+  background: var(--nordic-bg-surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%237A7A7A' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center;
+  border: 1px solid var(--nordic-border-default);
+  border-radius: var(--nordic-radius-sm);
+  padding: var(--nordic-space-2) 40px var(--nordic-space-2) var(--nordic-space-3);
+  font-family: var(--nordic-font-sans);
+  font-size: var(--nordic-text-base);
+  color: var(--nordic-text-primary);
+  height: 40px;
+  width: 100%;
+  cursor: pointer;
+  transition: all var(--nordic-duration-normal) var(--nordic-ease-default);
+}
+
+.nordic-select:hover {
+  border-color: var(--nordic-border-strong);
+}
+
+.nordic-select:focus {
+  border-color: var(--nordic-border-focus);
+  box-shadow: var(--nordic-shadow-focus);
+  outline: none;
+}
+
+/* ============================================
+   CHECKBOX & RADIO
+   ============================================ */
+
+.nordic-checkbox,
+.nordic-radio {
+  display: flex;
+  align-items: center;
+  gap: var(--nordic-space-2);
+  cursor: pointer;
+}
+
+.nordic-checkbox__input,
+.nordic-radio__input {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--nordic-border-default);
+  background: var(--nordic-bg-surface);
+  cursor: pointer;
+  transition: all var(--nordic-duration-fast) var(--nordic-ease-default);
+}
+
+.nordic-checkbox__input {
+  border-radius: var(--nordic-radius-sm);
+}
+
+.nordic-radio__input {
+  border-radius: var(--nordic-radius-full);
+}
+
+.nordic-checkbox__input:checked,
+.nordic-radio__input:checked {
+  background: var(--nordic-accent);
+  border-color: var(--nordic-accent);
+}
+
+.nordic-checkbox__input:checked::after {
+  content: '';
+  display: block;
+  width: 5px;
+  height: 9px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: translate(5px, 2px) rotate(45deg);
+}
+
+.nordic-radio__input:checked::after {
+  content: '';
+  display: block;
+  width: 8px;
+  height: 8px;
+  background: white;
+  border-radius: var(--nordic-radius-full);
+  margin: 4px;
+}
+
+.nordic-checkbox__input:focus-visible,
+.nordic-radio__input:focus-visible {
+  box-shadow: var(--nordic-shadow-focus);
+}
+
+/* ============================================
+   MODALS
+   ============================================ */
+
+.nordic-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(26, 26, 26, 0.3);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--nordic-space-4);
+  z-index: 1000;
+  animation: nordic-fade-in var(--nordic-duration-slow) var(--nordic-ease-out);
+}
+
+.nordic-modal {
+  background: var(--nordic-bg-elevated);
+  border-radius: var(--nordic-radius-lg);
+  box-shadow: var(--nordic-shadow-xl);
+  max-width: 480px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  animation: nordic-modal-enter var(--nordic-duration-slow) var(--nordic-ease-out);
+}
+
+.nordic-modal__header {
+  padding: var(--nordic-space-5) var(--nordic-space-6);
+  border-bottom: 1px solid var(--nordic-border-subtle);
+}
+
+.nordic-modal__title {
+  font-size: var(--nordic-text-lg);
+  font-weight: var(--nordic-weight-semibold);
+  color: var(--nordic-text-primary);
+}
+
+.nordic-modal__body {
+  padding: var(--nordic-space-6);
+  overflow-y: auto;
+}
+
+.nordic-modal__footer {
+  padding: var(--nordic-space-4) var(--nordic-space-6);
+  border-top: 1px solid var(--nordic-border-subtle);
+  display: flex;
+  gap: var(--nordic-space-3);
+  justify-content: flex-end;
+}
+
+@keyframes nordic-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes nordic-modal-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ============================================
+   NAVIGATION
+   ============================================ */
+
+.nordic-nav {
+  background: var(--nordic-bg-surface);
+  border-right: 1px solid var(--nordic-border-subtle);
+  width: var(--nordic-sidebar-width);
+  height: 100%;
+  padding: var(--nordic-space-4) var(--nordic-space-3);
+  overflow-y: auto;
+}
+
+.nordic-nav__header {
+  display: flex;
+  align-items: center;
+  gap: var(--nordic-space-3);
+  padding: var(--nordic-space-2) var(--nordic-space-3);
+  margin-bottom: var(--nordic-space-4);
+}
+
+.nordic-nav__logo {
+  width: 32px;
+  height: 32px;
+  background: var(--nordic-accent);
+  border-radius: var(--nordic-radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--nordic-text-inverse);
+}
+
+.nordic-nav__brand {
+  font-size: var(--nordic-text-md);
+  font-weight: var(--nordic-weight-semibold);
+  color: var(--nordic-text-primary);
+}
+
+.nordic-nav__section {
+  margin-bottom: var(--nordic-space-4);
+}
+
+.nordic-nav__label {
+  padding: var(--nordic-space-2) var(--nordic-space-3);
+  font-size: var(--nordic-text-xs);
+  font-weight: var(--nordic-weight-medium);
+  color: var(--nordic-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: var(--nordic-tracking-wider);
+}
+
+.nordic-nav__item {
+  display: flex;
+  align-items: center;
+  gap: var(--nordic-space-3);
+  padding: var(--nordic-space-2) var(--nordic-space-3);
+  border-radius: var(--nordic-radius-sm);
+  color: var(--nordic-text-secondary);
+  font-size: var(--nordic-text-base);
+  font-weight: var(--nordic-weight-medium);
+  cursor: pointer;
+  transition: all var(--nordic-duration-normal) var(--nordic-ease-default);
+}
+
+.nordic-nav__item:hover {
+  background: var(--nordic-bg-hover);
+  color: var(--nordic-text-primary);
+}
+
+.nordic-nav__item--active {
+  background: var(--nordic-accent-soft);
+  color: var(--nordic-accent);
+}
+
+.nordic-nav__item--active:hover {
+  background: var(--nordic-accent-soft);
+}
+
+.nordic-nav__item-count {
+  margin-left: auto;
+  font-size: var(--nordic-text-xs);
+  color: var(--nordic-text-tertiary);
+}
+
+/* ============================================
+   BADGES
+   ============================================ */
+
+.nordic-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nordic-space-1);
+  padding: var(--nordic-space-1) var(--nordic-space-2);
+  border-radius: var(--nordic-radius-sm);
+  font-size: var(--nordic-text-xs);
+  font-weight: var(--nordic-weight-medium);
+  background: var(--nordic-bg-recessed);
+  color: var(--nordic-text-secondary);
+}
+
+.nordic-badge--accent {
+  background: var(--nordic-accent-soft);
+  color: var(--nordic-accent);
+}
+
+.nordic-badge--success {
+  background: var(--nordic-success-soft);
+  color: var(--nordic-success);
+}
+
+.nordic-badge--warning {
+  background: var(--nordic-warning-soft);
+  color: var(--nordic-warning);
+}
+
+.nordic-badge--error {
+  background: var(--nordic-error-soft);
+  color: var(--nordic-error);
+}
+
+.nordic-badge--pill {
+  border-radius: var(--nordic-radius-full);
+}
+
+/* ============================================
+   DIVIDERS
+   ============================================ */
+
+.nordic-divider {
+  height: 1px;
+  background: var(--nordic-border-subtle);
+  margin: var(--nordic-space-4) 0;
+}
+
+.nordic-divider--strong {
+  background: var(--nordic-border-default);
+}
+
+/* ============================================
+   SCROLLBAR
+   ============================================ */
+
+.nordic-theme ::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+.nordic-theme ::-webkit-scrollbar-track {
+  background: var(--nordic-bg-canvas);
+}
+
+.nordic-theme ::-webkit-scrollbar-thumb {
+  background: var(--nordic-border-strong);
+  border: 3px solid var(--nordic-bg-canvas);
+  border-radius: var(--nordic-radius-full);
+}
+
+.nordic-theme ::-webkit-scrollbar-thumb:hover {
+  background: var(--nordic-text-tertiary);
+}
+
+/* ============================================
+   UTILITIES
+   ============================================ */
+
+.nordic-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.nordic-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

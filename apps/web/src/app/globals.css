@@ -1,0 +1,311 @@
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
+
+/*
+ * DeskCrafter Design System v6.0 — Aurora
+ * A vibrant, modern design language inspired by Arc Browser, Figma, and Framer.
+ */
+
+:root {
+  /* === BACKGROUNDS === */
+  --bg-base: #fffbf5;
+  --bg-surface: #ffffff;
+  --bg-elevated: #ffffff;
+  --bg-sunken: #fef5eb;
+  --bg-wash: #fdf2e6;
+
+  /* === TEXT === */
+  --text-primary: #1c1917;
+  --text-secondary: #44403c;
+  --text-tertiary: #78716c;
+  --text-quaternary: #a8a29e;
+
+  /* === ACCENT GRADIENT === */
+  --accent-start: #f97316;
+  --accent-end: #ec4899;
+  --accent-solid: #f97316;
+  --accent-hover: #ea580c;
+  --accent-subtle: #fff7ed;
+
+  /* === SEMANTIC === */
+  --success: #22c55e;
+  --success-subtle: #f0fdf4;
+  --warning: #eab308;
+  --warning-subtle: #fefce8;
+  --danger: #ef4444;
+  --danger-subtle: #fef2f2;
+  --info: #3b82f6;
+  --info-subtle: #eff6ff;
+
+  /* === BORDERS === */
+  --border-subtle: #f5f0ea;
+  --border-default: #e7e0d8;
+  --border-strong: #d6cdc2;
+  --border-accent: var(--accent-solid);
+
+  /* === CATEGORY COLORS === */
+  --cat-development: #8b5cf6;
+  --cat-development-bg: #f5f3ff;
+  --cat-utility: #06b6d4;
+  --cat-utility-bg: #ecfeff;
+  --cat-game: #22c55e;
+  --cat-game-bg: #f0fdf4;
+  --cat-multimedia: #f43f5e;
+  --cat-multimedia-bg: #fff1f2;
+  --cat-office: #3b82f6;
+  --cat-office-bg: #eff6ff;
+  --cat-graphics: #f97316;
+  --cat-graphics-bg: #fff7ed;
+  --cat-network: #14b8a6;
+  --cat-network-bg: #f0fdfa;
+  --cat-system: #64748b;
+  --cat-system-bg: #f8fafc;
+  --cat-other: #a855f7;
+  --cat-other-bg: #faf5ff;
+
+  /* === TYPOGRAPHY === */
+  --font-sans: "Plus Jakarta Sans", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", "SF Mono", ui-monospace, monospace;
+
+  --text-xs: 11px;
+  --text-sm: 13px;
+  --text-base: 15px;
+  --text-lg: 17px;
+  --text-xl: 20px;
+  --text-2xl: 26px;
+  --text-3xl: 32px;
+
+  --tracking-tight: -0.02em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.02em;
+
+  /* === SPACING === */
+  --space-0: 0;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --space-8: 40px;
+  --space-9: 48px;
+  --space-10: 64px;
+  --space-11: 80px;
+  --space-12: 96px;
+
+  /* === BORDER RADIUS === */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
+  --radius-full: 9999px;
+
+  /* === SHADOWS === */
+  --shadow-xs: 0 1px 2px rgba(28, 25, 23, 0.04);
+  --shadow-sm: 0 2px 4px rgba(28, 25, 23, 0.06);
+  --shadow-md: 0 4px 12px rgba(28, 25, 23, 0.08);
+  --shadow-lg: 0 8px 24px rgba(28, 25, 23, 0.10);
+  --shadow-xl: 0 16px 48px rgba(28, 25, 23, 0.12);
+
+  --glow-accent: 0 0 0 3px rgba(249, 115, 22, 0.15);
+  --glow-danger: 0 0 0 3px rgba(239, 68, 68, 0.15);
+  --glow-success: 0 0 0 3px rgba(34, 197, 94, 0.15);
+
+  /* === MOTION === */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  --duration-instant: 50ms;
+  --duration-fast: 100ms;
+  --duration-normal: 200ms;
+  --duration-slow: 300ms;
+  --duration-slower: 500ms;
+
+  /* === LAYOUT === */
+  --topbar-height: 64px;
+  --sidebar-width: 280px;
+  --inspector-width: 380px;
+}
+
+/* === DARK MODE === */
+[data-theme="dark"] {
+  --bg-base: #0c0a09;
+  --bg-surface: #1c1917;
+  --bg-elevated: #292524;
+  --bg-sunken: #0c0a09;
+  --bg-wash: #1c1917;
+
+  --text-primary: #fafaf9;
+  --text-secondary: #d6d3d1;
+  --text-tertiary: #a8a29e;
+  --text-quaternary: #78716c;
+
+  --border-subtle: #292524;
+  --border-default: #44403c;
+  --border-strong: #57534e;
+
+  --accent-subtle: rgba(249, 115, 22, 0.15);
+
+  --cat-development-bg: rgba(139, 92, 246, 0.15);
+  --cat-utility-bg: rgba(6, 182, 212, 0.15);
+  --cat-game-bg: rgba(34, 197, 94, 0.15);
+  --cat-multimedia-bg: rgba(244, 63, 94, 0.15);
+  --cat-office-bg: rgba(59, 130, 246, 0.15);
+  --cat-graphics-bg: rgba(249, 115, 22, 0.15);
+  --cat-network-bg: rgba(20, 184, 166, 0.15);
+  --cat-system-bg: rgba(100, 116, 139, 0.15);
+  --cat-other-bg: rgba(168, 85, 247, 0.15);
+}
+
+/* === BASE RESET === */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+body {
+  background: var(--bg-base);
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* === BASE ELEMENTS === */
+input,
+button,
+textarea,
+select {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  background: transparent;
+  border: none;
+  outline: none;
+}
+
+button {
+  cursor: pointer;
+}
+
+a {
+  color: var(--accent-solid);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* === SCROLLBAR === */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border: 3px solid var(--bg-surface);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-quaternary);
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+/* === FOCUS STATES === */
+:focus-visible {
+  outline: 2px solid var(--accent-solid);
+  outline-offset: 2px;
+}
+
+/* === SELECTION === */
+::selection {
+  background: var(--accent-subtle);
+  color: var(--text-primary);
+}
+
+/* === UTILITIES === */
+.mono {
+  font-family: var(--font-mono);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* === REDUCED MOTION === */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* === KEYFRAMES === */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}

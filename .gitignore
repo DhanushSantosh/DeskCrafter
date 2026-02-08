@@ -31,3 +31,5 @@ Thumbs.db
 # Desktop entry and launcher (user-specific, can be regenerated)
 *.desktop
 .local/
+
+node_modules/

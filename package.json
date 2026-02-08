@@ -1,0 +1,26 @@
+{
+  "name": "deskcrafter",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev:web",
+    "dev:web": "npm run dev -w apps/web",
+    "dev:desktop": "npm run dev -w apps/desktop",
+    "dev:server": "npm run dev -w apps/server",
+    "build:web": "npm run build -w apps/web",
+    "lint:web": "npm run lint -w apps/web",
+    "test:server": "npm run test -w apps/server",
+    "test:web": "npm run test -w apps/web"
+  },
+  "registries": {
+    "@react-bits": "https://reactbits.dev/r/{name}.json"
+  },
+  "engines": {
+    "node": ">=18.18.0"
+  },
+  "devDependencies": {
+    "shadcn": "^3.6.2"
+  }
+}
