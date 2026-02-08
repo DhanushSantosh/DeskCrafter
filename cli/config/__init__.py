@@ -1,9 +1,12 @@
-import os
-
-SIDEBAR_WIDTH = 300
-APP_TITLE = "🖥️ DeskCrafter"
-ICON_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets", "doc.png")
-STYLE_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "ui", "style.qss")
-DESKTOP_DIR = os.path.expanduser("~/.local/share/applications")
-CATEGORY_LIST = ["Utility", "Development", "Game", "Multimedia", "Other"]
-PYTHON_EXECUTABLE = "python3"
+from cli.config.config import (
+    APP_TITLE,
+    CATEGORY_LIST,
+    DEFAULT_ENTRY_ICON_PATH,
+    DESKTOP_DIR,
+    GLOBAL_DESKTOP_DIR,
+    ICON_PATH,
+    LOCAL_DESKTOP_DIR,
+    PYTHON_EXECUTABLE,
+    SIDEBAR_WIDTH,
+    STYLE_PATH,
+)

@@ -1,5 +1,5 @@
 import os
-from cli.config.config import DEFAULT_ENTRY_ICON_PATH
+from cli.config.config import DEFAULT_ENTRY_ICON_PATH, DESKTOP_DIR
 
 
 class DesktopEntry:
@@ -18,19 +18,19 @@ class DesktopEntry:
         self.terminal = terminal
         self.is_deskcrafter = is_deskcrafter
 
-    def save(self):
+    def save(self, desktop_dir=None):
         """Save the desktop entry as a .desktop file."""
         exec_path = self.exec_path
         if exec_path.startswith('"') and exec_path.endswith('"'):
             exec_path = exec_path[1:-1]
         exec_path = " ".join(arg.strip('"') for arg in exec_path.split())
-        desktop_dir = os.path.expanduser("~/.local/share/applications")
-        if not os.path.exists(desktop_dir):
-            os.makedirs(desktop_dir)
+        target_dir = desktop_dir or DESKTOP_DIR
+        if not os.path.exists(target_dir):
+            os.makedirs(target_dir, exist_ok=True)
         filename = f"{self.name.lower().replace(' ', '_')}.desktop"
-        filepath = os.path.join(desktop_dir, filename)
+        filepath = os.path.join(target_dir, filename)
         content = self.generate_content(exec_path)
-        with open(filepath, "w") as f:
+        with open(filepath, "w", encoding="utf-8") as f:
             f.write(content)
         os.chmod(filepath, 0o755)
 
@@ -46,7 +46,6 @@ class DesktopEntry:
             f"Name={self.name}\n"
             f"Comment={self.comment}\n"
             f"Exec={exec_path}\n"
-            f"TryExec={exec_path.split()[0]}\n"
             f"Icon={self.icon_path}\n"
             f"Categories={categories_str}\n"
             f"Terminal={'true' if self.terminal else 'false'}\n"

@@ -1,16 +1,19 @@
 from PyQt5.QtWidgets import (
     QWidget, QLabel, QLineEdit, QPushButton, QFileDialog, QVBoxLayout, QHBoxLayout,
     QMessageBox, QComboBox, QListWidget, QListWidgetItem, QFrame, QScrollArea, QSizePolicy, QCheckBox,
-    QScrollBar, QButtonGroup, QRadioButton, QTextEdit, QDialog, QDialogButtonBox
+    QScrollBar, QButtonGroup, QRadioButton, QTextEdit, QDialog, QDialogButtonBox, QInputDialog
 )
 from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtCore import Qt, QSize
 import os
 import json
+import subprocess
+import tempfile
 from typing import Optional
 from cli.logic.desktop_entry import DesktopEntry
 from cli.config.config import (
-    SIDEBAR_WIDTH, APP_TITLE, ICON_PATH, STYLE_PATH, DESKTOP_DIR, CATEGORY_LIST, DEFAULT_ENTRY_ICON_PATH
+    SIDEBAR_WIDTH, APP_TITLE, ICON_PATH, STYLE_PATH, CATEGORY_LIST, DEFAULT_ENTRY_ICON_PATH,
+    LOCAL_DESKTOP_DIR, GLOBAL_DESKTOP_DIR
 )
 from cli.utils.utils import get_exec_path, resolve_icon_path
 
@@ -27,6 +30,7 @@ class MainWindow(QWidget):
         self.selected_entry = None
         self.status_event = ""
         self.selected_categories = []
+        self.install_scope = "local"
         self.preview_label = None
         self.preview_frame = None
         self.setup_ui()
@@ -306,6 +310,25 @@ class MainWindow(QWidget):
         category_row.addWidget(self.selected_categories_scroll, 1)
         form_card_layout.addLayout(category_row)
 
+        scope_row = QHBoxLayout()
+        scope_row.setSpacing(10)
+        scope_label = QLabel("Install scope:")
+        scope_label.setStyleSheet("font-size:14px;")
+        self.scope_group = QButtonGroup(self)
+        self.scope_local_radio = QRadioButton("Local (current user)")
+        self.scope_global_radio = QRadioButton("Global (system, sudo)")
+        self.scope_local_radio.setChecked(True)
+        self.scope_local_radio.setStyleSheet("font-size:14px;")
+        self.scope_global_radio.setStyleSheet("font-size:14px;")
+        self.scope_group.addButton(self.scope_local_radio)
+        self.scope_group.addButton(self.scope_global_radio)
+        self.scope_local_radio.toggled.connect(self.on_install_scope_changed)
+        scope_row.addWidget(scope_label)
+        scope_row.addWidget(self.scope_local_radio)
+        scope_row.addWidget(self.scope_global_radio)
+        scope_row.addStretch()
+        form_card_layout.addLayout(scope_row)
+
         self.terminal_checkbox = QCheckBox("Run in terminal")
         self.terminal_checkbox.setChecked(False)
         self.terminal_checkbox.setStyleSheet("font-size:14px;")
@@ -457,12 +480,99 @@ class MainWindow(QWidget):
         self.status_event = text
         self.update_stats()
 
+    def on_install_scope_changed(self) -> None:
+        self.install_scope = "global" if self.scope_global_radio.isChecked() else "local"
+        self.set_status(
+            f"Install scope: {'Global' if self.install_scope == 'global' else 'Local'}"
+        )
+        self.load_entries()
+
+    def get_target_desktop_dir(self) -> str:
+        return GLOBAL_DESKTOP_DIR if self.install_scope == "global" else LOCAL_DESKTOP_DIR
+
+    def _prompt_sudo_password(self) -> Optional[str]:
+        password, ok = QInputDialog.getText(
+            self,
+            "Sudo Authentication",
+            "Enter your sudo password:",
+            QLineEdit.Password
+        )
+        if not ok:
+            return None
+        if not password:
+            QMessageBox.warning(self, "Authentication Error", "Password is required for global operations.")
+            return None
+        return password
+
+    def _run_sudo_command(self, args, password: str) -> None:
+        result = subprocess.run(
+            ["sudo", "-S", "-p", ""] + args,
+            input=f"{password}\n",
+            text=True,
+            capture_output=True,
+            check=False
+        )
+        if result.returncode != 0:
+            error_text = result.stderr.strip() or result.stdout.strip() or "sudo command failed"
+            raise OSError(error_text)
+
+    def _save_entry(self, entry: DesktopEntry) -> None:
+        target_dir = self.get_target_desktop_dir()
+        filename = f"{entry.name.lower().replace(' ', '_')}.desktop"
+        target_path = os.path.join(target_dir, filename)
+
+        if self.install_scope == "global":
+            password = self._prompt_sudo_password()
+            if password is None:
+                raise PermissionError("Global save cancelled by user.")
+
+            exec_path = entry.exec_path
+            if exec_path.startswith('"') and exec_path.endswith('"'):
+                exec_path = exec_path[1:-1]
+            exec_path = " ".join(arg.strip('"') for arg in exec_path.split())
+            content = entry.generate_content(exec_path)
+            temp_path = ""
+            try:
+                with tempfile.NamedTemporaryFile("w", encoding="utf-8", delete=False, suffix=".desktop") as temp_file:
+                    temp_file.write(content)
+                    temp_path = temp_file.name
+                os.chmod(temp_path, 0o755)
+                self._run_sudo_command(["mkdir", "-p", target_dir], password)
+                self._run_sudo_command(["install", "-m", "755", temp_path, target_path], password)
+            finally:
+                if temp_path and os.path.exists(temp_path):
+                    os.remove(temp_path)
+            return
+
+        entry.save(target_dir)
+
+    def _delete_entry_file(self, entry_name: str) -> None:
+        filename = f"{entry_name.lower().replace(' ', '_')}.desktop"
+        target_path = os.path.join(self.get_target_desktop_dir(), filename)
+        if not os.path.exists(target_path):
+            return
+
+        if self.install_scope == "global":
+            password = self._prompt_sudo_password()
+            if password is None:
+                raise PermissionError("Global delete cancelled by user.")
+            self._run_sudo_command(["rm", "-f", target_path], password)
+            return
+
+        os.remove(target_path)
+
     def load_entries(self) -> None:
         self.entries = []
-        if os.path.exists(DESKTOP_DIR):
-            for fname in os.listdir(DESKTOP_DIR):
+        target_dir = self.get_target_desktop_dir()
+        if os.path.exists(target_dir):
+            try:
+                directory_entries = os.listdir(target_dir)
+            except OSError as ex:
+                QMessageBox.warning(self, "Load Error", f"Failed to read entries from:\n{target_dir}\n\n{ex}")
+                directory_entries = []
+            for fname in directory_entries:
                 if fname.endswith(".desktop"):
-                    fpath = os.path.join(DESKTOP_DIR, fname)
+                    fpath = os.path.join(target_dir, fname)
                     entry = DesktopEntry.from_file(fpath)
                     if entry and getattr(entry, "is_deskcrafter", False):
                         self.entries.append(entry)
@@ -537,10 +647,15 @@ class MainWindow(QWidget):
             QMessageBox.Yes | QMessageBox.No, QMessageBox.No
         )
         if reply == QMessageBox.Yes:
-            fname = f"{self.selected_entry.name.lower().replace(' ', '_')}.desktop"
-            fpath = os.path.join(DESKTOP_DIR, fname)
-            if os.path.exists(fpath):
-                os.remove(fpath)
+            try:
+                self._delete_entry_file(self.selected_entry.name)
+            except PermissionError:
+                self.set_status("Delete cancelled")
+                return
+            except OSError as ex:
+                QMessageBox.warning(self, "Delete Error", f"Failed to delete desktop entry:\n{ex}")
+                self.set_status(f"Delete failed for: {self.selected_entry.name}")
+                return
             self.set_status(f"Deleted selected entry: {self.selected_entry.name}")
             self.load_entries()
             self.clear_form(status="New entry form ready")
@@ -580,15 +695,33 @@ class MainWindow(QWidget):
         if self.selected_entry is not None:
             old_name = self.selected_entry.name
             if old_name != name:
-                old_fname = f"{old_name.lower().replace(' ', '_')}.desktop"
-                old_fpath = os.path.join(DESKTOP_DIR, old_fname)
-                if os.path.exists(old_fpath):
-                    try:
-                        os.remove(old_fpath)
-                    except Exception as ex:
-                        print(f"[DeskCrafter] Failed to remove old entry: {ex}")
+                try:
+                    self._delete_entry_file(old_name)
+                except PermissionError:
+                    self.set_status("Rename cancelled")
+                    return
+                except OSError as ex:
+                    QMessageBox.warning(
+                        self,
+                        "Rename Error",
+                        f"Failed to remove previous desktop entry:\n{ex}"
+                    )
+                    self.set_status(f"Rename failed for: {old_name}")
+                    return
         
-        entry.save()
+        try:
+            self._save_entry(entry)
+        except PermissionError:
+            self.set_status("Save cancelled")
+            return
+        except OSError as ex:
+            QMessageBox.warning(
+                self,
+                "Save Error",
+                f"Failed to save desktop entry to:\n{self.get_target_desktop_dir()}\n\n{ex}"
+            )
+            self.set_status(f"Save failed for: {entry.name}")
+            return
 
         self.set_status(f"Created/Updated entry: {entry.name}")
         self.load_entries()
@@ -631,6 +764,8 @@ class MainWindow(QWidget):
                 with open(file_name, "r") as f:
                     data = json.load(f)
                 count = 0
+                failed = 0
+                save_cancelled = False
                 for entry in data:
                     # Defensive: skip if missing required fields
                     if not entry.get("name") or not entry.get("exec_path"):
@@ -652,8 +787,22 @@ class MainWindow(QWidget):
                         icon_path=entry.get("icon_path", ""),
                         terminal=entry.get("terminal", False),
                     )
-                    de.save()
-                    count += 1
+                    try:
+                        self._save_entry(de)
+                        count += 1
+                    except PermissionError:
+                        save_cancelled = True
+                        break
+                    except OSError:
+                        failed += 1
+                if failed:
+                    QMessageBox.warning(
+                        self,
+                        "Import Warning",
+                        f"Imported {count} entries, but {failed} failed to save in:\n{self.get_target_desktop_dir()}"
+                    )
+                if save_cancelled:
+                    QMessageBox.information(self, "Import Cancelled", "Import stopped by user.")
                 self.set_status(f"Imported {count} entries.")
                 self.load_entries()
             except Exception as ex:
