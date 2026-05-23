@@ -1,0 +1,20 @@
+[package]
+name = "deskcrafter-desktop"
+version = "0.1.0"
+description = "DeskCrafter native Linux launcher suite"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lib]
+name = "deskcrafter_desktop_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2.5.3", features = [] }
+
+[dependencies]
+deskcrafter-core = { path = "../../../crates/core" }
+serde.workspace = true
+serde_json.workspace = true
+tauri = { version = "2.9.5", features = [] }
