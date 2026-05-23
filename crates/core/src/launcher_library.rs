@@ -68,6 +68,7 @@ impl LauncherLibrary {
         safety::backup_if_exists(&path)?;
         fs::write(&path, content)?;
         set_executable_bit(&path)?;
+        refresh_desktop_entry_cache(&self.applications_dir);
         self.get_launcher_from_path(path)
     }
 
@@ -77,6 +78,7 @@ impl LauncherLibrary {
         safety::backup_if_exists(&existing.desktop_file_path)?;
         fs::write(&existing.desktop_file_path, content)?;
         set_executable_bit(&existing.desktop_file_path)?;
+        refresh_desktop_entry_cache(&self.applications_dir);
         self.get_launcher_from_path(existing.desktop_file_path)
     }
 
@@ -89,6 +91,7 @@ impl LauncherLibrary {
         }
         safety::backup_if_exists(&launcher.desktop_file_path)?;
         fs::remove_file(&launcher.desktop_file_path)?;
+        refresh_desktop_entry_cache(&self.applications_dir);
         Ok(())
     }
 
@@ -209,4 +212,23 @@ fn set_executable_bit(path: &Path) -> Result<(), CoreError> {
 #[cfg(not(unix))]
 fn set_executable_bit(_path: &Path) -> Result<(), CoreError> {
     Ok(())
+}
+
+fn refresh_desktop_entry_cache(applications_dir: &Path) {
+    if applications_dir != platform::applications_dir() {
+        return;
+    }
+
+    let _ = Command::new("update-desktop-database")
+        .arg(applications_dir)
+        .output();
+
+    for command in ["kbuildsycoca6", "kbuildsycoca5", "kbuildsycoca"] {
+        let Ok(status) = Command::new(command).arg("--noincremental").status() else {
+            continue;
+        };
+        if status.success() {
+            break;
+        }
+    }
 }

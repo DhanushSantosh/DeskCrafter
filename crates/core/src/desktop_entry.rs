@@ -1,7 +1,7 @@
 use crate::error::CoreError;
 use crate::types::{Launcher, LauncherInput, LauncherKind};
 use std::collections::BTreeMap;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 const DESKTOP_ENTRY_HEADER: &str = "[Desktop Entry]";
 const DESKCRAFTER_FLAG: &str = "X-DeskCrafter";
@@ -70,6 +70,9 @@ pub fn validate_input(input: &LauncherInput) -> Result<Vec<String>, CoreError> {
                     "Executable path is required".to_string(),
                 ));
             }
+            if let Some(warning) = non_executable_warning(&input.exec_path) {
+                warnings.push(warning);
+            }
         }
     }
     if input.icon_path.trim().is_empty() {
@@ -117,7 +120,7 @@ pub fn generate(input: &LauncherInput) -> Result<String, CoreError> {
     } else {
         let exec_path = sanitize_single_line(&input.exec_path);
         lines.push(format!("Exec={exec_path}"));
-        if let Some(try_exec) = exec_path.split_whitespace().next() {
+        if let Some(try_exec) = runnable_try_exec(&exec_path) {
             lines.push(format!("TryExec={try_exec}"));
         }
     }
@@ -131,6 +134,67 @@ pub fn generate(input: &LauncherInput) -> Result<String, CoreError> {
     lines.push(format!("StartupWMClass={STARTUP_WM_CLASS}"));
     lines.push(String::new());
     Ok(lines.join("\n"))
+}
+
+fn runnable_try_exec(exec_path: &str) -> Option<String> {
+    #[cfg(unix)]
+    use std::os::unix::fs::PermissionsExt;
+
+    let candidate = exec_path.split_whitespace().next()?.trim();
+    if candidate.is_empty() {
+        return None;
+    }
+
+    if !candidate.starts_with('/') {
+        return Some(candidate.to_string());
+    }
+
+    let path = Path::new(candidate);
+    let metadata = path.metadata().ok()?;
+    if !metadata.is_file() {
+        return None;
+    }
+
+    #[cfg(unix)]
+    let is_executable = metadata.permissions().mode() & 0o111 != 0;
+    #[cfg(not(unix))]
+    let is_executable = true;
+
+    if is_executable {
+        Some(candidate.to_string())
+    } else {
+        None
+    }
+}
+
+fn non_executable_warning(exec_path: &str) -> Option<String> {
+    #[cfg(unix)]
+    use std::os::unix::fs::PermissionsExt;
+
+    let candidate = exec_path.split_whitespace().next()?.trim();
+    if !candidate.starts_with('/') {
+        return None;
+    }
+
+    let path = Path::new(candidate);
+    let metadata = path.metadata().ok()?;
+    if !metadata.is_file() {
+        return None;
+    }
+
+    #[cfg(unix)]
+    let is_executable = metadata.permissions().mode() & 0o111 != 0;
+    #[cfg(not(unix))]
+    let is_executable = true;
+
+    if is_executable {
+        None
+    } else {
+        Some(format!(
+            "The target file exists but is not executable: {}",
+            path.display()
+        ))
+    }
 }
 
 pub fn parse(content: &str, path: PathBuf) -> Result<Launcher, CoreError> {
@@ -193,12 +257,14 @@ pub fn parse(content: &str, path: PathBuf) -> Result<Launcher, CoreError> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::fs;
+    use tempfile::tempdir;
 
     fn sample_input() -> LauncherInput {
         LauncherInput {
             name: "Sample App".to_string(),
             description: "A sample launcher".to_string(),
-            exec_path: "/usr/bin/sample --flag".to_string(),
+            exec_path: "/usr/bin/env true".to_string(),
             icon_path: "sample".to_string(),
             categories: vec!["Utility".to_string(), "Development".to_string()],
             terminal: false,
@@ -211,16 +277,35 @@ mod tests {
     fn generates_managed_desktop_entry() {
         let content = generate(&sample_input()).expect("entry should generate");
         assert!(content.contains("[Desktop Entry]"));
-        assert!(content.contains("Exec=/usr/bin/sample --flag"));
-        assert!(content.contains("TryExec=/usr/bin/sample"));
+        assert!(content.contains("Exec=/usr/bin/env true"));
+        assert!(content.contains("TryExec=/usr/bin/env"));
         assert!(content.contains("X-DeskCrafter=true"));
         assert!(content.ends_with('\n'));
+    }
+
+    #[test]
+    fn omits_try_exec_for_non_executable_absolute_targets() {
+        let mut input = sample_input();
+        input.exec_path = "/tmp/deskcrafter-non-executable".to_string();
+        let content = generate(&input).expect("entry should generate");
+        assert!(!content.contains("TryExec=/tmp/deskcrafter-non-executable"));
     }
 
     #[test]
     fn defaults_empty_categories_to_utility() {
         let categories = normalize_categories(&[]);
         assert_eq!(categories, vec!["Utility"]);
+    }
+
+    #[test]
+    fn warns_for_non_executable_absolute_targets() {
+        let temp = tempdir().expect("tempdir should exist");
+        let target = temp.path().join("sample-appimage");
+        fs::write(&target, "placeholder").expect("file should be written");
+        let mut input = sample_input();
+        input.exec_path = target.display().to_string();
+        let warnings = validate_input(&input).expect("validation should succeed");
+        assert!(warnings.iter().any(|warning| warning.contains("not executable")));
     }
 
     #[test]
