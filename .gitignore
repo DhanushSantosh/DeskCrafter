@@ -1,7 +1,4 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
+
 
 # Virtual environment
 .venv/
@@ -13,7 +10,7 @@ ENV/
 # Distribution / packaging
 build/
 dist/
-*.egg-info/
+
 
 # OS files
 .DS_Store
@@ -33,3 +30,6 @@ Thumbs.db
 .local/
 
 node_modules/
+target/
+.next/
+.playwright-mcp/

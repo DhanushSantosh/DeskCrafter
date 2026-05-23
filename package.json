@@ -2,25 +2,29 @@
   "name": "deskcrafter",
   "private": true,
   "workspaces": [
-    "apps/*"
+    "apps/desktop",
+    "apps/site"
   ],
   "scripts": {
-    "dev": "npm run dev:web",
-    "dev:web": "npm run dev -w apps/web",
+    "dev": "npm run dev:desktop",
     "dev:desktop": "npm run dev -w apps/desktop",
-    "dev:server": "npm run dev -w apps/server",
-    "build:web": "npm run build -w apps/web",
-    "lint:web": "npm run lint -w apps/web",
-    "test:server": "npm run test -w apps/server",
-    "test:web": "npm run test -w apps/web"
-  },
-  "registries": {
-    "@react-bits": "https://reactbits.dev/r/{name}.json"
+    "dev:desktop:preview": "npm run dev:ui -w apps/desktop -- --host 127.0.0.1 --port 1421",
+    "build:desktop": "npm run build -w apps/desktop",
+    "build:desktop:ui": "npm run build:ui -w apps/desktop",
+    "dev:site": "npm run dev -w apps/site",
+    "dev:site:preview": "npm run dev -w apps/site -- -p 3001",
+    "build:site": "npm run build -w apps/site",
+    "lint": "npm run lint -w apps/desktop && npm run lint -w apps/site",
+    "typecheck": "npm run typecheck -w apps/desktop && npm run typecheck -w apps/site",
+    "test": "npm run test -w apps/desktop && cargo test",
+    "check": "npm run lint && npm run typecheck && npm run test",
+    "cargo:test": "cargo test"
   },
   "engines": {
-    "node": ">=18.18.0"
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
   },
   "devDependencies": {
-    "shadcn": "^3.6.2"
+    "@tauri-apps/cli": "^2.9.2"
   }
 }
