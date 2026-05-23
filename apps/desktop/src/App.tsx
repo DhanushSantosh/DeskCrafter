@@ -303,7 +303,7 @@ export default function App() {
     <main className="app-shell">
       <aside className="sidebar">
         <div className="brand">
-          <div className="brand-mark">D</div>
+          <img className="brand-logo" src="/icon.png" alt="" aria-hidden="true" />
           <div>
             <div className="brand-name">DeskCrafter</div>
             <div className="brand-subtitle">Linux Tools Suite</div>

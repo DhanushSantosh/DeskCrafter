@@ -17,6 +17,12 @@
   --danger: #ff6685;
   --warning: #ffc857;
   --ok: #62d394;
+  --sidebar-width: clamp(236px, 22vw, 290px);
+  --inspector-width: clamp(300px, 30vw, 380px);
+  --shell-padding: clamp(18px, 2vw, 28px);
+  --panel-padding: clamp(16px, 1.6vw, 20px);
+  --topbar-height: clamp(64px, 8vh, 74px);
+  --control-height: 38px;
 }
 
 * {
@@ -25,8 +31,8 @@
 
 body {
   margin: 0;
-  min-width: 1060px;
-  min-height: 680px;
+  width: 100vw;
+  height: 100vh;
   overflow: hidden;
 }
 
@@ -40,10 +46,56 @@ button {
   border: 0;
 }
 
+.tool-nav,
+.primary-panel,
+.inspector,
+.data-preview,
+.guided-command code {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.tool-nav::-webkit-scrollbar,
+.primary-panel::-webkit-scrollbar,
+.inspector::-webkit-scrollbar,
+.data-preview::-webkit-scrollbar,
+.guided-command code::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.tool-nav::-webkit-scrollbar-track,
+.primary-panel::-webkit-scrollbar-track,
+.inspector::-webkit-scrollbar-track,
+.data-preview::-webkit-scrollbar-track,
+.guided-command code::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tool-nav::-webkit-scrollbar-thumb,
+.primary-panel::-webkit-scrollbar-thumb,
+.inspector::-webkit-scrollbar-thumb,
+.data-preview::-webkit-scrollbar-thumb,
+.guided-command code::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+}
+
+.tool-nav::-webkit-scrollbar-thumb:hover,
+.primary-panel::-webkit-scrollbar-thumb:hover,
+.inspector::-webkit-scrollbar-thumb:hover,
+.data-preview::-webkit-scrollbar-thumb:hover,
+.guided-command code::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
 .app-shell {
   display: grid;
-  grid-template-columns: 290px minmax(0, 1fr);
+  grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+  width: 100vw;
   height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
   background:
     radial-gradient(900px circle at 80% 10%, rgba(255, 15, 57, 0.09), transparent 50%),
     linear-gradient(135deg, #050505 0%, #0f0204 45%, #050505 100%);
@@ -53,10 +105,11 @@ button {
   border-right: 1px solid var(--border-soft);
   background: rgba(10, 10, 10, 0.78);
   backdrop-filter: blur(18px);
-  padding: 22px 16px;
+  padding: var(--panel-padding) 12px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: clamp(14px, 2vh, 24px);
+  min-height: 0;
 }
 
 .brand {
@@ -66,15 +119,11 @@ button {
   padding: 4px 8px;
 }
 
-.brand-mark {
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
-  display: grid;
-  place-items: center;
-  background: linear-gradient(135deg, var(--cherry), var(--cherry-dark));
-  color: white;
-  font-weight: 800;
+.brand-logo {
+  width: clamp(34px, 4vh, 42px);
+  height: clamp(34px, 4vh, 42px);
+  border-radius: 10px;
+  object-fit: contain;
   box-shadow: 0 0 28px rgba(255, 15, 57, 0.24);
 }
 
@@ -102,6 +151,9 @@ button {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
 .tool-group {
@@ -127,8 +179,8 @@ button {
   width: 100%;
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  padding: 12px;
+  gap: 10px;
+  padding: clamp(9px, 1.15vh, 12px);
   border-radius: 10px;
   color: var(--muted);
   background: transparent;
@@ -167,16 +219,18 @@ button {
 
 .workspace {
   min-width: 0;
+  min-height: 0;
   display: flex;
   flex-direction: column;
 }
 
 .topbar {
-  height: 74px;
+  min-height: var(--topbar-height);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 24px;
+  gap: 16px;
+  padding: 0 var(--shell-padding);
   border-bottom: 1px solid var(--border-soft);
   background: rgba(15, 16, 18, 0.72);
   backdrop-filter: blur(18px);
@@ -199,7 +253,7 @@ button {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  height: 38px;
+  min-height: var(--control-height);
   padding: 0 12px;
   border: 1px solid var(--border-soft);
   border-radius: 999px;
@@ -209,7 +263,7 @@ button {
 }
 
 .button {
-  min-height: 38px;
+  min-height: var(--control-height);
   border-radius: 10px;
   padding: 0 14px;
   display: inline-flex;
@@ -254,36 +308,37 @@ button {
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 380px;
+  grid-template-columns: minmax(0, 1fr) var(--inspector-width);
   gap: 1px;
 }
 
 .primary-panel,
 .inspector {
   min-height: 0;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .primary-panel {
-  padding: 28px;
+  padding: var(--shell-padding);
 }
 
 .inspector {
   border-left: 1px solid var(--border-soft);
   background: rgba(10, 10, 10, 0.44);
-  padding: 20px;
+  padding: var(--panel-padding);
 }
 
 .section-heading {
   display: flex;
   align-items: center;
   gap: 14px;
-  margin-bottom: 22px;
+  margin-bottom: clamp(16px, 2vh, 22px);
 }
 
 .section-heading h1 {
   margin: 0;
-  font-size: 28px;
+  font-size: 26px;
   letter-spacing: 0;
 }
 
@@ -299,7 +354,7 @@ button {
 .form-grid input,
 .form-grid select {
   width: 100%;
-  height: 42px;
+  height: 40px;
   border: 1px solid var(--border-soft);
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.055);
@@ -323,8 +378,8 @@ button {
   border: 1px solid rgba(255, 15, 57, 0.18);
   background: rgba(255, 15, 57, 0.075);
   border-radius: 12px;
-  padding: 12px 14px;
-  margin-bottom: 18px;
+  padding: 11px 13px;
+  margin-bottom: 16px;
 }
 
 .suite-notice {
@@ -333,9 +388,9 @@ button {
 
 .form-grid {
   display: grid;
-  grid-template-columns: 1fr 240px;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 240px);
   gap: 16px;
-  max-width: 820px;
+  max-width: min(820px, 100%);
 }
 
 .form-grid label {
@@ -497,10 +552,10 @@ button {
 
 .suite-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
   gap: 14px;
   margin-top: 18px;
-  max-width: 860px;
+  max-width: min(860px, 100%);
 }
 
 .suite-grid .terminal-card {
@@ -516,7 +571,7 @@ button {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  max-width: 920px;
+  max-width: min(920px, 100%);
 }
 
 .empty-tool-state {
@@ -545,7 +600,7 @@ button {
 .data-preview {
   white-space: pre-wrap;
   overflow: auto;
-  max-height: 420px;
+  max-height: min(420px, 44vh);
   padding: 16px;
   border-radius: 14px;
   border: 1px solid var(--border-soft);
@@ -553,6 +608,39 @@ button {
   color: #d5d9e2;
   font-size: 12px;
   line-height: 1.55;
+}
+
+@media (max-width: 1120px), (max-height: 720px) {
+  :root {
+    --sidebar-width: 238px;
+    --inspector-width: 320px;
+    --shell-padding: 18px;
+    --panel-padding: 16px;
+    --topbar-height: 64px;
+    --control-height: 36px;
+  }
+
+  .tool-button small {
+    display: none;
+  }
+
+  .section-heading h1 {
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 1020px) {
+  .content-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .inspector {
+    display: none;
+  }
+
+  .form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .guided-commands {

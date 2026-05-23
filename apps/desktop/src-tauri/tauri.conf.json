@@ -15,8 +15,10 @@
         "title": "DeskCrafter",
         "width": 1280,
         "height": 820,
-        "minWidth": 1060,
-        "minHeight": 680
+        "minWidth": 980,
+        "minHeight": 640,
+        "maxWidth": 1800,
+        "maxHeight": 1100
       }
     ],
     "security": {
