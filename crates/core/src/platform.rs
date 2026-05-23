@@ -11,6 +11,10 @@ pub struct SystemProfile {
     pub metadata_dir: PathBuf,
     pub desktop_session: Option<String>,
     pub distro: Option<String>,
+    pub package_manager: Option<String>,
+    pub has_systemd: bool,
+    pub has_flatpak: bool,
+    pub has_appimage_support: bool,
 }
 
 pub fn home_dir() -> PathBuf {
@@ -49,6 +53,10 @@ pub fn system_profile() -> SystemProfile {
             .ok()
             .or_else(|| env::var("DESKTOP_SESSION").ok()),
         distro: read_os_release_name(),
+        package_manager: detect_package_manager(),
+        has_systemd: command_exists("systemctl"),
+        has_flatpak: command_exists("flatpak"),
+        has_appimage_support: true,
     }
 }
 
@@ -57,6 +65,30 @@ fn read_os_release_name() -> Option<String> {
     for line in content.lines() {
         if let Some(value) = line.strip_prefix("PRETTY_NAME=") {
             return Some(value.trim_matches('"').to_string());
+        }
+    }
+    None
+}
+
+pub fn autostart_dir() -> PathBuf {
+    config_home().join("autostart")
+}
+
+pub fn command_exists(command: &str) -> bool {
+    env::var_os("PATH")
+        .map(|paths| {
+            env::split_paths(&paths).any(|dir| {
+                let candidate = dir.join(command);
+                candidate.is_file()
+            })
+        })
+        .unwrap_or(false)
+}
+
+fn detect_package_manager() -> Option<String> {
+    for command in ["dnf", "apt", "zypper", "pacman", "apk"] {
+        if command_exists(command) {
+            return Some(command.to_string());
         }
     }
     None

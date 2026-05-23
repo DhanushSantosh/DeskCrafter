@@ -43,6 +43,10 @@ export interface SystemProfile {
   metadataDir: string;
   desktopSession?: string | null;
   distro?: string | null;
+  packageManager?: string | null;
+  hasSystemd: boolean;
+  hasFlatpak: boolean;
+  hasAppimageSupport: boolean;
 }
 
 export interface ValidationReport {
@@ -77,4 +81,57 @@ export interface LauncherIssue {
 export interface RepairOptions {
   normalizeCategories: boolean;
   refreshIcon: boolean;
+}
+
+export type ToolCategory =
+  | "launchers"
+  | "startup"
+  | "apps"
+  | "system"
+  | "storage"
+  | "permissions";
+
+export type RiskLevel = "read_only" | "user_write" | "guided_admin";
+
+export interface ToolDefinition {
+  id: string;
+  label: string;
+  category: ToolCategory;
+  description: string;
+  riskLevel: RiskLevel;
+  capabilities: string[];
+  supportedDistros: string[];
+}
+
+export interface ToolScanInput {
+  query?: string | null;
+  path?: string | null;
+}
+
+export interface ToolActionInput {
+  path?: string | null;
+  action?: string | null;
+}
+
+export interface GuidedCommand {
+  label: string;
+  command: string;
+  riskLevel: RiskLevel;
+  explanation: string;
+}
+
+export interface ToolResult {
+  toolId: string;
+  summary: string;
+  data: unknown;
+  warnings: string[];
+  repairSuggestions: string[];
+  guidedCommands: GuidedCommand[];
+}
+
+export interface ToolStatus {
+  toolId: string;
+  available: boolean;
+  summary: string;
+  warnings: string[];
 }

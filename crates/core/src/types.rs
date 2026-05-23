@@ -133,3 +133,77 @@ impl<T> ApiResult<T> {
         }
     }
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum ToolCategory {
+    Launchers,
+    Startup,
+    Apps,
+    System,
+    Storage,
+    Permissions,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum RiskLevel {
+    ReadOnly,
+    UserWrite,
+    GuidedAdmin,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct ToolDefinition {
+    pub id: String,
+    pub label: String,
+    pub category: ToolCategory,
+    pub description: String,
+    pub risk_level: RiskLevel,
+    pub capabilities: Vec<String>,
+    pub supported_distros: Vec<String>,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct ToolScanInput {
+    pub query: Option<String>,
+    pub path: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct ToolActionInput {
+    pub path: Option<String>,
+    pub action: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct GuidedCommand {
+    pub label: String,
+    pub command: String,
+    pub risk_level: RiskLevel,
+    pub explanation: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct ToolResult {
+    pub tool_id: String,
+    pub summary: String,
+    pub data: serde_json::Value,
+    pub warnings: Vec<String>,
+    pub repair_suggestions: Vec<String>,
+    pub guided_commands: Vec<GuidedCommand>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct ToolStatus {
+    pub tool_id: String,
+    pub available: bool,
+    pub summary: String,
+    pub warnings: Vec<String>,
+}

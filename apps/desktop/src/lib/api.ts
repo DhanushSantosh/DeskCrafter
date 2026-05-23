@@ -8,6 +8,12 @@ import type {
   LauncherIssue,
   RepairOptions,
   SystemProfile,
+  GuidedCommand,
+  ToolActionInput,
+  ToolDefinition,
+  ToolResult,
+  ToolScanInput,
+  ToolStatus,
   ValidationReport,
 } from "./types";
 
@@ -42,8 +48,42 @@ function mockCommand<T>(command: string, args?: CommandArgs): ApiResult<T> {
         metadataDir: "~/.local/share/deskcrafter",
         desktopSession: "Preview",
         distro: "Linux",
+        packageManager: "mock",
+        hasSystemd: true,
+        hasFlatpak: false,
+        hasAppimageSupport: true,
       } as T);
     case "list_launchers":
+      return ok([] as T);
+    case "list_tools":
+      return ok(mockTools() as T);
+    case "get_tool_status":
+      return ok({
+        toolId: String(args?.toolId ?? "system_profile"),
+        available: true,
+        summary: "Browser preview mode",
+        warnings: [],
+      } as T);
+    case "run_tool_scan":
+      return ok({
+        toolId: String(args?.toolId ?? "system_profile"),
+        summary: "Preview scan completed",
+        data: { preview: true, input: args?.input ?? {} },
+        warnings: ["Running outside Tauri; system data is mocked."],
+        repairSuggestions: [],
+        guidedCommands: [],
+      } as T);
+    case "validate_tool_action":
+    case "apply_tool_action":
+      return ok({
+        toolId: String(args?.toolId ?? "permissions_helper"),
+        summary: "Preview action result",
+        data: { input: args?.input ?? {} },
+        warnings: ["Actions are disabled in browser preview mode."],
+        repairSuggestions: [],
+        guidedCommands: [],
+      } as T);
+    case "list_guided_admin_commands":
       return ok([] as T);
     case "validate_launcher":
       return ok({
@@ -102,6 +142,17 @@ async function unwrap<T>(result: Promise<ApiResult<T>>): Promise<T> {
 
 export const api = {
   getSystemProfile: () => unwrap(invokeCommand<SystemProfile>("get_system_profile")),
+  listTools: () => unwrap(invokeCommand<ToolDefinition[]>("list_tools")),
+  getToolStatus: (toolId: string) =>
+    unwrap(invokeCommand<ToolStatus>("get_tool_status", { toolId })),
+  runToolScan: (toolId: string, input: ToolScanInput = {}) =>
+    unwrap(invokeCommand<ToolResult>("run_tool_scan", { toolId, input })),
+  validateToolAction: (toolId: string, input: ToolActionInput = {}) =>
+    unwrap(invokeCommand<ToolResult>("validate_tool_action", { toolId, input })),
+  applyToolAction: (toolId: string, input: ToolActionInput = {}) =>
+    unwrap(invokeCommand<ToolResult>("apply_tool_action", { toolId, input })),
+  listGuidedAdminCommands: (toolId: string) =>
+    unwrap(invokeCommand<GuidedCommand[]>("list_guided_admin_commands", { toolId })),
   listLaunchers: () => unwrap(invokeCommand<Launcher[]>("list_launchers")),
   getLauncher: (id: string) => unwrap(invokeCommand<Launcher>("get_launcher", { id })),
   createLauncher: (input: LauncherInput) =>
@@ -119,3 +170,80 @@ export const api = {
   resolveIcon: (input: string) => unwrap(invokeCommand<IconResolution>("resolve_icon", { input })),
   scanLauncherIssues: () => unwrap(invokeCommand<LauncherIssue[]>("scan_launcher_issues")),
 };
+
+function mockTools(): ToolDefinition[] {
+  return [
+    {
+      id: "launcher_manager",
+      label: "Launcher Manager",
+      category: "launchers",
+      description: "Create, inspect, repair, and launch user application entries.",
+      riskLevel: "user_write",
+      capabilities: ["desktop entries", "AppImages", "scripts", "URLs"],
+      supportedDistros: ["linux"],
+    },
+    {
+      id: "autostart_manager",
+      label: "Autostart Manager",
+      category: "startup",
+      description: "Inspect user and system autostart entries.",
+      riskLevel: "user_write",
+      capabilities: ["XDG autostart"],
+      supportedDistros: ["linux"],
+    },
+    {
+      id: "appimage_manager",
+      label: "AppImage Manager",
+      category: "apps",
+      description: "Find AppImages and report integration readiness.",
+      riskLevel: "read_only",
+      capabilities: ["AppImage discovery"],
+      supportedDistros: ["linux"],
+    },
+    {
+      id: "environment_path",
+      label: "Environment & PATH Viewer",
+      category: "system",
+      description: "Inspect PATH entries and shell profile files.",
+      riskLevel: "read_only",
+      capabilities: ["PATH", "shell profiles"],
+      supportedDistros: ["linux"],
+    },
+    {
+      id: "service_viewer",
+      label: "Service Viewer",
+      category: "system",
+      description: "Read user and system systemd service state.",
+      riskLevel: "guided_admin",
+      capabilities: ["systemd", "guided commands"],
+      supportedDistros: ["linux"],
+    },
+    {
+      id: "disk_cache_inspector",
+      label: "Disk & Cache Inspector",
+      category: "storage",
+      description: "Read safe user-owned cache sizes.",
+      riskLevel: "read_only",
+      capabilities: ["cache sizes"],
+      supportedDistros: ["linux"],
+    },
+    {
+      id: "permissions_helper",
+      label: "Permissions Helper",
+      category: "permissions",
+      description: "Inspect file executability and user-owned chmod actions.",
+      riskLevel: "user_write",
+      capabilities: ["permissions", "executable bit"],
+      supportedDistros: ["linux"],
+    },
+    {
+      id: "system_profile",
+      label: "System Profile",
+      category: "system",
+      description: "Show distro, session, XDG paths, and integration capabilities.",
+      riskLevel: "read_only",
+      capabilities: ["distro", "XDG", "systemd", "Flatpak"],
+      supportedDistros: ["linux"],
+    },
+  ];
+}

@@ -18,7 +18,7 @@ export const siteConfig = {
   githubUrl: "https://github.com/DhanushSantosh/DeskCrafter",
 };
 
-export const featureGroups = [
+export const primaryFeatures = [
   {
     title: "Desktop Entry Studio",
     description: "Create and preview FreeDesktop-compatible launchers with safe user-owned installs.",
@@ -29,6 +29,9 @@ export const featureGroups = [
     description: "Turn portable AppImages into polished app menu entries with icon and category metadata.",
     icon: Package,
   },
+];
+
+export const bentoFeatures = [
   {
     title: "Script Launcher",
     description: "Wrap shell, Python, and executable scripts with terminal-aware launch behavior.",

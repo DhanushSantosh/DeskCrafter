@@ -1,13 +1,15 @@
 use deskcrafter_core::types::{
-    ApiResult, IconResolution, InspectTargetResult, Launcher, LauncherInput, LauncherIssue,
-    RepairOptions, ValidationReport,
+    ApiResult, GuidedCommand, IconResolution, InspectTargetResult, Launcher, LauncherInput,
+    LauncherIssue, RepairOptions, ToolActionInput, ToolDefinition, ToolResult, ToolScanInput,
+    ToolStatus, ValidationReport,
 };
-use deskcrafter_core::{LauncherLibrary, SystemProfile};
+use deskcrafter_core::{LauncherLibrary, SystemProfile, ToolRegistry};
 use std::sync::Mutex;
 use tauri::State;
 
 struct AppState {
     library: Mutex<LauncherLibrary>,
+    tools: Mutex<ToolRegistry>,
 }
 
 fn with_library<T>(
@@ -25,9 +27,75 @@ fn with_library<T>(
     }
 }
 
+fn with_tools<T>(
+    state: State<'_, AppState>,
+    action: impl FnOnce(&ToolRegistry) -> Result<T, deskcrafter_core::CoreError>,
+) -> ApiResult<T> {
+    match state.tools.lock() {
+        Ok(registry) => match action(&registry) {
+            Ok(data) => ApiResult::ok(data),
+            Err(error) => ApiResult::err(error),
+        },
+        Err(_) => ApiResult::err(deskcrafter_core::CoreError::Io(std::io::Error::other(
+            "Tool registry lock is poisoned",
+        ))),
+    }
+}
+
 #[tauri::command]
 fn get_system_profile() -> ApiResult<SystemProfile> {
     ApiResult::ok(deskcrafter_core::platform::system_profile())
+}
+
+#[tauri::command]
+fn list_tools(state: State<'_, AppState>) -> ApiResult<Vec<ToolDefinition>> {
+    with_tools(state, |registry| Ok(registry.list_tools()))
+}
+
+#[tauri::command]
+fn get_tool_status(state: State<'_, AppState>, tool_id: String) -> ApiResult<ToolStatus> {
+    with_tools(state, |registry| registry.get_tool_status(&tool_id))
+}
+
+#[tauri::command]
+fn run_tool_scan(
+    state: State<'_, AppState>,
+    tool_id: String,
+    input: ToolScanInput,
+) -> ApiResult<ToolResult> {
+    with_tools(state, |registry| registry.run_tool_scan(&tool_id, input))
+}
+
+#[tauri::command]
+fn validate_tool_action(
+    state: State<'_, AppState>,
+    tool_id: String,
+    input: ToolActionInput,
+) -> ApiResult<ToolResult> {
+    with_tools(state, |registry| {
+        registry.validate_tool_action(&tool_id, input)
+    })
+}
+
+#[tauri::command]
+fn apply_tool_action(
+    state: State<'_, AppState>,
+    tool_id: String,
+    input: ToolActionInput,
+) -> ApiResult<ToolResult> {
+    with_tools(state, |registry| {
+        registry.apply_tool_action(&tool_id, input)
+    })
+}
+
+#[tauri::command]
+fn list_guided_admin_commands(
+    state: State<'_, AppState>,
+    tool_id: String,
+) -> ApiResult<Vec<GuidedCommand>> {
+    with_tools(state, |registry| {
+        registry.list_guided_admin_commands(&tool_id)
+    })
 }
 
 #[tauri::command]
@@ -105,9 +173,16 @@ pub fn run() {
     tauri::Builder::default()
         .manage(AppState {
             library: Mutex::new(LauncherLibrary::default()),
+            tools: Mutex::new(ToolRegistry::default()),
         })
         .invoke_handler(tauri::generate_handler![
             get_system_profile,
+            list_tools,
+            get_tool_status,
+            run_tool_scan,
+            validate_tool_action,
+            apply_tool_action,
+            list_guided_admin_commands,
             list_launchers,
             get_launcher,
             create_launcher,

@@ -2,14 +2,17 @@ import {
   Activity,
   AppWindow,
   BadgeCheck,
-  FileCode2,
-  Globe2,
+  Boxes,
+  Gauge,
+  HardDrive,
   Image,
+  KeyRound,
   Package,
   Play,
   RefreshCw,
   Save,
   Search,
+  ShieldCheck,
   Stethoscope,
   Terminal,
   Trash2,
@@ -22,9 +25,9 @@ import {
   categoriesToInput,
   defaultLauncherInput,
   normalizeCategoryInput,
-  toolCatalog,
 } from "./lib/launcher";
 import type {
+  GuidedCommand,
   IconResolution,
   InspectTargetResult,
   Launcher,
@@ -32,27 +35,65 @@ import type {
   LauncherIssue,
   LauncherKind,
   SystemProfile,
+  ToolCategory,
+  ToolDefinition,
+  ToolResult,
   ValidationReport,
 } from "./lib/types";
 import "./styles.css";
 
-const toolIcons = {
-  application: AppWindow,
-  app_image: Package,
-  script: FileCode2,
-  url: Globe2,
-  icons: Image,
-  doctor: Stethoscope,
+const categoryLabels: Record<ToolCategory, string> = {
+  launchers: "Launchers",
+  startup: "Startup",
+  apps: "Apps",
+  system: "System",
+  storage: "Storage",
+  permissions: "Permissions",
 };
 
-type ActiveTool = LauncherKind | "icons" | "doctor";
+const categoryIcons = {
+  launchers: AppWindow,
+  startup: Gauge,
+  apps: Package,
+  system: Terminal,
+  storage: HardDrive,
+  permissions: KeyRound,
+};
 
-function isLauncherKind(value: ActiveTool): value is LauncherKind {
-  return value === "application" || value === "app_image" || value === "script" || value === "url";
+const toolIcons: Record<string, typeof AppWindow> = {
+  launcher_manager: AppWindow,
+  autostart_manager: Gauge,
+  appimage_manager: Package,
+  environment_path: Terminal,
+  service_viewer: ShieldCheck,
+  disk_cache_inspector: HardDrive,
+  permissions_helper: KeyRound,
+  system_profile: Boxes,
+};
+
+const launcherToolId = "launcher_manager";
+const permissionsToolId = "permissions_helper";
+
+type SuiteSnapshot = {
+  systemProfile: SystemProfile;
+  definitions: ToolDefinition[];
+  launcherList: Launcher[];
+  issueList: LauncherIssue[];
+};
+
+async function loadSuiteData(): Promise<SuiteSnapshot> {
+  const [systemProfile, definitions, launcherList, issueList] = await Promise.all([
+    api.getSystemProfile(),
+    api.listTools(),
+    api.listLaunchers(),
+    api.scanLauncherIssues(),
+  ]);
+  return { systemProfile, definitions, launcherList, issueList };
 }
 
 export default function App() {
-  const [activeTool, setActiveTool] = useState<ActiveTool>("application");
+  const [tools, setTools] = useState<ToolDefinition[]>([]);
+  const [activeToolId, setActiveToolId] = useState(launcherToolId);
   const [profile, setProfile] = useState<SystemProfile | null>(null);
   const [launchers, setLaunchers] = useState<Launcher[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -61,6 +102,8 @@ export default function App() {
   const [issues, setIssues] = useState<LauncherIssue[]>([]);
   const [iconResolution, setIconResolution] = useState<IconResolution | null>(null);
   const [inspectedTarget, setInspectedTarget] = useState<InspectTargetResult | null>(null);
+  const [toolResult, setToolResult] = useState<ToolResult | null>(null);
+  const [guidedCommands, setGuidedCommands] = useState<GuidedCommand[]>([]);
   const [status, setStatus] = useState("Ready");
   const [targetInput, setTargetInput] = useState("");
 
@@ -69,36 +112,51 @@ export default function App() {
     [launchers, selectedId]
   );
 
-  const refreshAll = useCallback(async () => {
-    setStatus("Refreshing workspace");
-    const [systemProfile, launcherList, issueList] = await Promise.all([
-      api.getSystemProfile(),
-      api.listLaunchers(),
-      api.scanLauncherIssues(),
-    ]);
+  const activeTool = useMemo(
+    () => tools.find((tool) => tool.id === activeToolId) ?? null,
+    [tools, activeToolId]
+  );
+
+  const groupedTools = useMemo(() => {
+    const grouped = new Map<ToolCategory, ToolDefinition[]>();
+    for (const tool of tools) {
+      const current = grouped.get(tool.category) ?? [];
+      current.push(tool);
+      grouped.set(tool.category, current);
+    }
+    return grouped;
+  }, [tools]);
+
+  const refreshSuite = useCallback(async (announce = true) => {
+    if (announce) {
+      setStatus("Refreshing suite");
+    }
+    const { systemProfile, definitions, launcherList, issueList } = await loadSuiteData();
     setProfile(systemProfile);
+    setTools(definitions);
     setLaunchers(launcherList);
     setIssues(issueList);
-    setStatus("Workspace refreshed");
+    setStatus("Suite refreshed");
   }, []);
 
   useEffect(() => {
     let active = true;
-    Promise.all([api.getSystemProfile(), api.listLaunchers(), api.scanLauncherIssues()])
-      .then(([systemProfile, launcherList, issueList]) => {
-        if (!active) {
-          return;
-        }
-        setProfile(systemProfile);
-        setLaunchers(launcherList);
-        setIssues(issueList);
-        setStatus("Workspace refreshed");
-      })
-      .catch((error: Error) => {
+    void (async () => {
+      try {
+        const { systemProfile, definitions, launcherList, issueList } = await loadSuiteData();
         if (active) {
-          setStatus(error.message);
+          setProfile(systemProfile);
+          setTools(definitions);
+          setLaunchers(launcherList);
+          setIssues(issueList);
+          setStatus("Suite refreshed");
         }
-      });
+      } catch (error) {
+        if (active) {
+          setStatus(error instanceof Error ? error.message : "Unable to refresh suite");
+        }
+      }
+    })();
     return () => {
       active = false;
     };
@@ -132,15 +190,18 @@ export default function App() {
     setDraft((current) => buildLauncherInput(current, patch));
   }
 
-  function handleToolSelect(tool: ActiveTool) {
-    setActiveTool(tool);
-    if (isLauncherKind(tool)) {
-      setDraft((current) => buildLauncherInput(current, { kind: tool }));
+  async function selectTool(tool: ToolDefinition) {
+    setActiveToolId(tool.id);
+    setToolResult(null);
+    setGuidedCommands([]);
+    if (tool.id !== launcherToolId) {
+      await scanTool(tool.id);
     }
   }
 
   function selectLauncher(launcher: Launcher) {
     setSelectedId(launcher.id);
+    setActiveToolId(launcherToolId);
     setDraft({
       name: launcher.name,
       description: launcher.description,
@@ -151,14 +212,27 @@ export default function App() {
       kind: launcher.kind,
       url: launcher.url ?? null,
     });
-    if (isLauncherKind(launcher.kind)) {
-      setActiveTool(launcher.kind);
-    }
+  }
+
+  async function scanTool(toolId = activeToolId) {
+    setStatus("Scanning tool");
+    const result = await api.runToolScan(toolId, {
+      query: targetInput || null,
+      path: targetInput || null,
+    });
+    const commands = await api.listGuidedAdminCommands(toolId);
+    setToolResult(result);
+    setGuidedCommands(commands.length > 0 ? commands : result.guidedCommands);
+    setStatus(result.summary);
   }
 
   async function inspectTarget() {
     if (!targetInput.trim()) {
       setStatus("Enter a path or URL to inspect");
+      return;
+    }
+    if (activeToolId !== launcherToolId) {
+      await scanTool(activeToolId);
       return;
     }
     const result = await api.inspectTarget(targetInput);
@@ -170,7 +244,6 @@ export default function App() {
       kind: result.kind,
       url: result.kind === "url" ? targetInput : null,
     });
-    setActiveTool(result.kind);
     setStatus("Target inspected");
   }
 
@@ -180,7 +253,7 @@ export default function App() {
       : await api.createLauncher(draft);
     setSelectedId(saved.id);
     setStatus(`${saved.name} saved`);
-    await refreshAll();
+    await refreshSuite();
   }
 
   async function deleteSelected() {
@@ -192,7 +265,7 @@ export default function App() {
     setSelectedId(null);
     setDraft(defaultLauncherInput);
     setStatus("Launcher deleted with backup");
-    await refreshAll();
+    await refreshSuite();
   }
 
   async function launchSelected() {
@@ -221,10 +294,10 @@ export default function App() {
     });
     selectLauncher(repaired);
     setStatus("Launcher metadata repaired");
-    await refreshAll();
+    await refreshSuite();
   }
 
-  const ActiveIcon = toolIcons[activeTool];
+  const ActiveIcon = activeTool ? toolIcons[activeTool.id] ?? Activity : Activity;
 
   return (
     <main className="app-shell">
@@ -233,26 +306,37 @@ export default function App() {
           <div className="brand-mark">D</div>
           <div>
             <div className="brand-name">DeskCrafter</div>
-            <div className="brand-subtitle">Linux Launcher Suite</div>
+            <div className="brand-subtitle">Linux Tools Suite</div>
           </div>
         </div>
 
         <nav className="tool-nav" aria-label="DeskCrafter tools">
-          {toolCatalog.map((tool) => {
-            const Icon = toolIcons[tool.id];
+          {Array.from(groupedTools.entries()).map(([category, categoryTools]) => {
+            const CategoryIcon = categoryIcons[category];
             return (
-              <button
-                key={tool.id}
-                className={`tool-button ${activeTool === tool.id ? "tool-button-active" : ""}`}
-                onClick={() => handleToolSelect(tool.id)}
-                type="button"
-              >
-                <Icon size={18} />
-                <span>
-                  <strong>{tool.label}</strong>
-                  <small>{tool.description}</small>
-                </span>
-              </button>
+              <section className="tool-group" key={category}>
+                <div className="tool-group-label">
+                  <CategoryIcon size={14} />
+                  {categoryLabels[category]}
+                </div>
+                {categoryTools.map((tool) => {
+                  const Icon = toolIcons[tool.id] ?? Activity;
+                  return (
+                    <button
+                      key={tool.id}
+                      className={`tool-button ${activeToolId === tool.id ? "tool-button-active" : ""}`}
+                      onClick={() => void selectTool(tool)}
+                      type="button"
+                    >
+                      <Icon size={18} />
+                      <span>
+                        <strong>{tool.label}</strong>
+                        <small>{tool.description}</small>
+                      </span>
+                    </button>
+                  );
+                })}
+              </section>
             );
           })}
         </nav>
@@ -261,15 +345,18 @@ export default function App() {
       <section className="workspace">
         <header className="topbar">
           <div>
-            <div className="eyebrow">Target directory</div>
-            <div className="path-label">{profile?.applicationsDir ?? "Resolving XDG profile"}</div>
+            <div className="eyebrow">System profile</div>
+            <div className="path-label">
+              {profile?.distro ?? "Linux"} · {profile?.desktopSession ?? "Desktop session"} ·{" "}
+              {profile?.packageManager ?? "package manager unknown"}
+            </div>
           </div>
           <div className="topbar-actions">
             <span className="status-pill">
               <Activity size={14} />
               {status}
             </span>
-            <Button variant="secondary" onClick={() => void refreshAll()}>
+            <Button variant="secondary" onClick={() => void refreshSuite()}>
               <RefreshCw size={16} />
               Refresh
             </Button>
@@ -281,8 +368,8 @@ export default function App() {
             <div className="section-heading">
               <ActiveIcon size={24} />
               <div>
-                <h1>{toolCatalog.find((tool) => tool.id === activeTool)?.label}</h1>
-                <p>{profile?.distro ?? "Linux"} · {profile?.desktopSession ?? "Desktop session"}</p>
+                <h1>{activeTool?.label ?? "Linux Tools Suite"}</h1>
+                <p>{activeTool?.description ?? "Loading suite registry"}</p>
               </div>
             </div>
 
@@ -290,44 +377,67 @@ export default function App() {
               <input
                 value={targetInput}
                 onChange={(event) => setTargetInput(event.target.value)}
-                placeholder="Inspect an AppImage, script path, executable, or https:// URL"
+                placeholder={
+                  activeToolId === launcherToolId
+                    ? "Inspect an AppImage, script path, executable, or https:// URL"
+                    : "Optional path or query for this tool"
+                }
               />
               <Button variant="secondary" onClick={() => void inspectTarget()}>
                 <Search size={16} />
-                Inspect
+                {activeToolId === launcherToolId ? "Inspect" : "Scan"}
               </Button>
             </div>
 
-            {inspectedTarget ? (
-              <div className="notice">
-                <BadgeCheck size={16} />
-                <span>
-                  Suggested {inspectedTarget.kind.replace("_", " ")} launcher:
-                  {" "}
-                  <strong>{inspectedTarget.suggestedName}</strong>
-                </span>
-              </div>
+            {activeTool ? (
+              <ToolMeta tool={activeTool} />
             ) : null}
 
-            {activeTool === "doctor" ? (
-              <DoctorPanel issues={issues} onRepair={() => void repairSelected()} />
-            ) : activeTool === "icons" ? (
-              <IconPanel resolution={iconResolution} onResolve={() => void resolveIcon()} />
-            ) : (
-              <LauncherForm
+            {activeToolId === launcherToolId ? (
+              <LauncherModule
                 draft={draft}
                 selectedLauncher={selectedLauncher}
+                inspectedTarget={inspectedTarget}
+                iconResolution={iconResolution}
                 onChange={updateDraft}
                 onSave={() => void saveLauncher()}
                 onDelete={() => void deleteSelected()}
                 onLaunch={() => void launchSelected()}
+                onResolveIcon={() => void resolveIcon()}
+                onRepair={() => void repairSelected()}
+                issues={issues}
+              />
+            ) : (
+              <ToolResultPanel
+                result={toolResult}
+                guidedCommands={guidedCommands}
+                onScan={() => void scanTool()}
+                onPermissionAction={
+                  activeToolId === permissionsToolId
+                    ? () =>
+                        void api
+                          .applyToolAction(permissionsToolId, {
+                            path: targetInput || null,
+                            action: "make_executable",
+                          })
+                          .then(setToolResult)
+                    : undefined
+                }
               />
             )}
           </section>
 
           <aside className="inspector">
             <div className="inspector-section">
-              <h2>Library</h2>
+              <h2>Tool status</h2>
+              <div className="message message-ok">{activeTool?.riskLevel.replace("_", " ") ?? "loading"}</div>
+              {activeTool?.capabilities.map((capability) => (
+                <div className="capability-pill" key={capability}>{capability}</div>
+              ))}
+            </div>
+
+            <div className="inspector-section">
+              <h2>Launcher library</h2>
               <div className="launcher-list">
                 {launchers.length === 0 ? (
                   <p className="empty-state">No user launchers found yet.</p>
@@ -355,17 +465,94 @@ export default function App() {
               {validation?.warnings.map((warning) => (
                 <div className="message message-warning" key={warning}>{warning}</div>
               ))}
-              {validation?.valid ? <div className="message message-ok">Ready to save</div> : null}
+              {validation?.valid ? <div className="message message-ok">Launcher ready to save</div> : null}
             </div>
 
             <div className="inspector-section preview-section">
               <h2>Desktop preview</h2>
-              <pre>{validation?.preview || "Complete the form to preview generated launcher content."}</pre>
+              <pre>{validation?.preview || "Open Launcher Manager to preview generated launcher content."}</pre>
             </div>
           </aside>
         </div>
       </section>
     </main>
+  );
+}
+
+function ToolMeta({ tool }: { tool: ToolDefinition }) {
+  return (
+    <div className="notice suite-notice">
+      <BadgeCheck size={16} />
+      <span>
+        {categoryLabels[tool.category]} · {tool.riskLevel.replace("_", " ")} · {tool.supportedDistros.join(", ")}
+      </span>
+    </div>
+  );
+}
+
+function LauncherModule({
+  draft,
+  selectedLauncher,
+  inspectedTarget,
+  iconResolution,
+  issues,
+  onChange,
+  onSave,
+  onDelete,
+  onLaunch,
+  onResolveIcon,
+  onRepair,
+}: {
+  draft: LauncherInput;
+  selectedLauncher: Launcher | null;
+  inspectedTarget: InspectTargetResult | null;
+  iconResolution: IconResolution | null;
+  issues: LauncherIssue[];
+  onChange: (patch: Partial<LauncherInput>) => void;
+  onSave: () => void;
+  onDelete: () => void;
+  onLaunch: () => void;
+  onResolveIcon: () => void;
+  onRepair: () => void;
+}) {
+  return (
+    <>
+      {inspectedTarget ? (
+        <div className="notice">
+          <BadgeCheck size={16} />
+          <span>
+            Suggested {inspectedTarget.kind.replace("_", " ")} launcher:{" "}
+            <strong>{inspectedTarget.suggestedName}</strong>
+          </span>
+        </div>
+      ) : null}
+      <LauncherForm
+        draft={draft}
+        selectedLauncher={selectedLauncher}
+        onChange={onChange}
+        onSave={onSave}
+        onDelete={onDelete}
+        onLaunch={onLaunch}
+      />
+      <div className="suite-grid">
+        <div className="terminal-card">
+          <Image size={22} />
+          <div>
+            <h2>Icon resolution</h2>
+            <p>{iconResolution ? iconResolution.resolvedPath ?? iconResolution.themeName ?? "unresolved" : "Resolve the icon field when needed."}</p>
+          </div>
+          <Button variant="secondary" onClick={onResolveIcon}>Resolve</Button>
+        </div>
+        <div className="terminal-card">
+          <Stethoscope size={22} />
+          <div>
+            <h2>Launcher Doctor</h2>
+            <p>{issues.length === 0 ? "No launcher issues found." : `${issues.length} issue(s) found.`}</p>
+          </div>
+          <Button variant="secondary" onClick={onRepair}>Repair selected</Button>
+        </div>
+      </div>
+    </>
   );
 }
 
@@ -457,60 +644,84 @@ function LauncherForm({
   );
 }
 
-function DoctorPanel({ issues, onRepair }: { issues: LauncherIssue[]; onRepair: () => void }) {
+function ToolResultPanel({
+  result,
+  guidedCommands,
+  onScan,
+  onPermissionAction,
+}: {
+  result: ToolResult | null;
+  guidedCommands: GuidedCommand[];
+  onScan: () => void;
+  onPermissionAction?: () => void;
+}) {
   return (
-    <div className="doctor-panel">
-      <div className="terminal-card">
-        <Terminal size={22} />
-        <div>
-          <h2>Launcher scan</h2>
-          <p>{issues.length === 0 ? "No broken user launchers detected." : `${issues.length} issue(s) found.`}</p>
-        </div>
+    <div className="tool-result-panel">
+      <div className="action-row">
+        <Button onClick={onScan}>
+          <Search size={16} />
+          Run scan
+        </Button>
+        {onPermissionAction ? (
+          <Button variant="secondary" onClick={onPermissionAction}>
+            <KeyRound size={16} />
+            Mark executable
+          </Button>
+        ) : null}
       </div>
-      <div className="issue-list">
-        {issues.map((issue) => (
-          <div className={`issue issue-${issue.severity}`} key={`${issue.path}-${issue.message}`}>
-            <strong>{issue.severity}</strong>
-            <span>{issue.message}</span>
-            <small>{issue.path}</small>
+      {result ? (
+        <>
+          <div className="terminal-card">
+            <Terminal size={22} />
+            <div>
+              <h2>{result.summary}</h2>
+              <p>{result.warnings.length === 0 ? "Scan completed without warnings." : `${result.warnings.length} warning(s)`}</p>
+            </div>
           </div>
-        ))}
-      </div>
-      <Button variant="secondary" onClick={onRepair}>
-        <Stethoscope size={16} />
-        Repair selected launcher
-      </Button>
+          <ResultMessages result={result} />
+          <pre className="data-preview">{JSON.stringify(result.data, null, 2)}</pre>
+        </>
+      ) : (
+        <div className="empty-tool-state">
+          <Terminal size={34} />
+          <h2>Run a scan to load this tool.</h2>
+          <p>Tools are read-first by default. Admin-level changes appear as guided commands, not automatic writes.</p>
+        </div>
+      )}
+      <GuidedCommands commands={guidedCommands} />
     </div>
   );
 }
 
-function IconPanel({
-  resolution,
-  onResolve,
-}: {
-  resolution: IconResolution | null;
-  onResolve: () => void;
-}) {
+function ResultMessages({ result }: { result: ToolResult }) {
   return (
-    <div className="doctor-panel">
-      <div className="terminal-card">
-        <Image size={22} />
-        <div>
-          <h2>Icon resolution</h2>
-          <p>Use the Icon field in the launcher form, then resolve it here.</p>
-        </div>
-      </div>
-      <Button variant="secondary" onClick={onResolve}>
-        <Search size={16} />
-        Resolve icon
-      </Button>
-      {resolution ? (
-        <div className="resolution-box">
-          <span>Input: {resolution.input}</span>
-          <span>Exists: {resolution.exists ? "yes" : "no"}</span>
-          <span>Path: {resolution.resolvedPath ?? "theme name or unresolved"}</span>
-        </div>
-      ) : null}
+    <div className="result-messages">
+      {result.warnings.map((warning) => (
+        <div className="message message-warning" key={warning}>{warning}</div>
+      ))}
+      {result.repairSuggestions.map((suggestion) => (
+        <div className="message message-ok" key={suggestion}>{suggestion}</div>
+      ))}
     </div>
+  );
+}
+
+function GuidedCommands({ commands }: { commands: GuidedCommand[] }) {
+  if (commands.length === 0) {
+    return null;
+  }
+  return (
+    <section className="guided-commands">
+      <h2>Guided commands</h2>
+      {commands.map((command) => (
+        <div className="guided-command" key={`${command.label}-${command.command}`}>
+          <div>
+            <strong>{command.label}</strong>
+            <span>{command.explanation}</span>
+          </div>
+          <code>{command.command}</code>
+        </div>
+      ))}
+    </section>
   );
 }

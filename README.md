@@ -1,134 +1,76 @@
-# 🖥️ **DeskCrafter**
+# DeskCrafter
 
-> **A beautiful, user-friendly Linux app for creating, managing, and launching custom desktop entries.**
+DeskCrafter is a Linux launcher suite for creating, validating, repairing, and managing application launchers across desktop environments.
 
----
+The project is now organized around a native desktop app, a product site, and shared Rust launcher logic:
 
-## 🚀 Purpose
+- `apps/desktop`: Tauri + Vite + React desktop application.
+- `apps/site`: DeskCrafter product website.
+- `crates/core`: Rust launcher domain logic and Linux tool registry.
+- `docs`: product, architecture, backend, packaging, and testing notes.
 
-DeskCrafter aims to make it effortless for users to create and manage application launchers on Linux. When you want your custom script launched as an Application, DeskCrafter provides an intuitive way to do it—no manual editing of `.desktop` files required.
+## Tool Suite
 
----
+- Desktop Entry Studio for `.desktop` launchers.
+- AppImage Integrator for portable Linux apps.
+- Script Launcher Builder for shell, Python, and executable scripts.
+- URL Launcher Builder for web tools.
+- Icon & Category Manager for launcher metadata.
+- Launcher Doctor for broken launcher detection and repair.
+- Practical Linux tools for autostart, services, PATH inspection, cache inspection, permissions, and system profile checks.
 
-## ⚡ **Important:**
+## Development
 
-DeskCrafter can handle files like Shell scripts (`.sh`), Python scripts (`.py`), AppImages (.AppImage) as launchable files. Simply select your script when creating a new entry(just make sure your scripts are working properly).
-
----
-
-## ✨ Key Benefits
-
-- 🎯 **Easy Desktop Entry Creation** – No need to remember `.desktop` file syntax.
-- 👀 **Live Preview** – Instantly see how your launcher will appear.
-- 🖼️ **Icon Picker** – Quickly select or browse for icons.
-- 🗂️ **Category Selection** – Organize your entries by category.
-- ✏️ **Edit & Delete** – Manage your custom entries with ease.
-- 🔒 **Safe** – Entries are created in your user directory, no root required.
-- 🖥️ **Modern UI** – Clean, dark-themed interface built with PyQt5.
-
----
-
-## 🖼️ Screenshots
-
-| Main App Page                         | Example: Selected `.desktop` App              |
-| ------------------------------------- | --------------------------------------------- |
-| ![Main App Page](assets/main-app.png) | ![Selected Entry Example](assets/example.png) |
-
-- **Left:** DeskCrafter's main interface for managing entries.
-- **Right:** Example of editing/viewing a specific `.desktop` entry.
-
----
-
-## 🛠️ Installation
-
-### Prerequisites
-
-- Python 3.7+
-- `python3-venv` and `python3-pip` installed
-- Linux desktop environment (GNOME, KDE, XFCE, etc.)
-
----
-
-### Installation Overview
-
-The `setup.sh` script automates the setup and management of DeskCrafter. It provides:
-
-- **Automated Installation:** Sets up a Python virtual environment, installs dependencies, and creates a launcher and desktop entry for easy access.
-- **Interactive Menu:** If run without arguments, presents a menu to install, uninstall, or get help.
-- **Dependency Checks:** Verifies that Python 3, `venv`, and `pip` are installed before proceeding.
-- **Uninstallation:** Removes the launcher and desktop entry, with an option to remove the virtual environment.
-- **Help Option:** Run `./setup.sh help` to see usage instructions.
-
-You can run the script with `install`, `uninstall`, or `help` as arguments, or simply execute it for an interactive menu.
-
----
-
-### 🚦 Steps
-
-1. **Clone the repository:**
-
-   ```bash
-   git clone https://github.com/DhanushSantosh/DeskCrafter.git
-   cd DeskCrafter
-   ```
-
-2. **Run the installer:**
-
-   ```bash
-   ./setup.sh
-   ```
-
-   - The script will set up a Python virtual environment, install dependencies, and create a launcher and desktop entry.
-
-3. **Launch DeskCrafter:**
-   - From your application menu, search for "DeskCrafter" and launch it.
-   - run `deskcrafter` from terminal.
-
----
-
-## 📝 Usage
-
-1. **Create a New Entry:**
-
-   - Click the **＋ New Entry** button.
-   - Fill in the name, description, category, executable path, and icon.
-   - Optionally, check **Run in terminal** if it's a GUI-based file or script.
-   - Click **Create/Save Desktop Entry**.
-
-2. **Manage Entries:**
-
-   - Select an entry from the sidebar to edit or delete it.
-   - Use the search bar to filter entries.
-
-3. **Live Preview:**
-   - See a real-time preview of your `.desktop` file and icon as you edit.
-
----
-
-## 📂 Uninstallation
-
-To remove DeskCrafter, run:
+Install dependencies:
 
 ```bash
-./setup.sh uninstall
+npm install
 ```
 
-This removes the launcher and desktop entry. To remove the virtual environment, delete the `.venv` folder.
+Run the product site:
 
----
+```bash
+npm run dev:site:preview
+```
 
-## 🤝 Contributing
+Run the desktop UI in browser preview:
 
-Pull requests and suggestions are welcome!
+```bash
+npm run dev:desktop:preview
+```
 
----
+Run the real Tauri desktop app:
 
-## 🐞 Issues & Feature Requests
+```bash
+npm run dev:desktop
+```
 
-If you encounter bugs or have feature requests, please [open an issue](https://github.com/DhanushSantosh/deskcrafter/issues) on GitHub.
+Run checks:
 
----
+```bash
+npm run check
+```
 
-## 📄 License
+Build outputs:
+
+```bash
+npm run build:site
+npm run build:desktop:ui
+npm run build:desktop
+```
+
+`npm run build:desktop` and `npm run dev:desktop` require Tauri's native Linux development libraries. On Fedora-like systems, install WebKitGTK, JavaScriptCoreGTK, libsoup 3, GTK, and appindicator development packages if the build reports missing `.pc` files.
+
+## Documentation
+
+Start with:
+
+- [Product Scope](docs/product-scope.md)
+- [Architecture](docs/architecture.md)
+- [Backend Contracts](docs/backend-contracts.md)
+- [Development](docs/development.md)
+- [Packaging](docs/packaging.md)
+
+## License
 
 MIT License. See [LICENSE](LICENSE) for details.
