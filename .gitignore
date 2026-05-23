@@ -32,4 +32,5 @@ Thumbs.db
 node_modules/
 target/
 .next/
+*.tsbuildinfo
 .playwright-mcp/
