@@ -8,31 +8,20 @@ import {
   Github,
   MonitorCog,
   Sparkles,
-  AppWindow,
-  Package,
-  Terminal as TerminalIcon,
   Play,
   RotateCcw,
   CheckCircle,
   AlertTriangle,
   XCircle,
-  Search,
-  Globe2,
-  FileCode2,
-  Image as ImageIcon,
-  Stethoscope,
-  ShieldCheck,
-  BadgeCheck,
 } from "lucide-react";
 import { Button } from "../components/Button";
-import { siteConfig } from "../lib/site-content";
+import { bentoFeatures, primaryFeatures, principles, siteConfig, toolDefinitions } from "../lib/site-content";
 
 export default function HomePage() {
-  // Simulator States
-  const [appName, setAppName] = useState("Zen Browser");
-  const [execPath, setExecPath] = useState("/opt/zen/zen-browser");
-  const [iconName, setIconName] = useState("zen-browser");
-  const [category, setCategory] = useState("Network;WebBrowser;");
+  const [selectedToolId, setSelectedToolId] = useState("launcher_manager");
+  const [targetPath, setTargetPath] = useState("~/.local/share/applications");
+  const [scanScope, setScanScope] = useState("User-owned paths");
+  const [safetyMode, setSafetyMode] = useState("Read first");
   const [simTab, setSimTab] = useState<"code" | "mock">("code");
   const [compileState, setCompileState] = useState<"idle" | "compiling" | "success">("idle");
   const [compileLog, setCompileLog] = useState("");
@@ -40,12 +29,9 @@ export default function HomePage() {
   // Doctor States
   const [docState, setDocState] = useState<"idle" | "scanning" | "scanned" | "repairing" | "repaired">("idle");
   const [docLogs, setDocLogs] = useState<Array<{ type: "info" | "warn" | "err" | "ok" | "success" | "head"; text: string }>>([
-    { type: "head", text: "DeskCrafter Doctor v0.1.0" },
-    { type: "info", text: "Diagnostic scanner ready. Press 'Run Diagnostics' to begin checks." }
+    { type: "head", text: "DeskCrafter Suite Scan v0.1.0" },
+    { type: "info", text: "Registry scanner ready. Press 'Run Suite Scan' to inspect Linux tool modules." }
   ]);
-
-  // Icon Resolver Widget States
-  const [searchQuery, setSearchQuery] = useState("firefox");
 
   // Scroll State for Floating Pill Navbar
   const [scrolled, setScrolled] = useState(false);
@@ -68,19 +54,19 @@ export default function HomePage() {
     if (compileState !== "idle") return;
 
     setCompileState("compiling");
-    setCompileLog("Building launcher package...");
+    setCompileLog("Loading tool registry contract...");
 
     setTimeout(() => {
-      setCompileLog("Validating desktop entry standards...");
+      setCompileLog("Checking read/write boundary for selected module...");
     }, 400);
 
     setTimeout(() => {
-      setCompileLog("Writing launcher to local standard XDG folder...");
+      setCompileLog("Preparing safe action plan for Linux desktop paths...");
     }, 800);
 
     setTimeout(() => {
       setCompileState("success");
-      setCompileLog("Success: Created launcher at ~/.local/share/applications/zen-browser.desktop");
+      setCompileLog(`Ready: ${selectedToolId} plan prepared without automatic admin changes.`);
     }, 1200);
   };
 
@@ -93,23 +79,23 @@ export default function HomePage() {
   const runDiagnostics = () => {
     setDocState("scanning");
     setDocLogs([
-      { type: "head", text: "DeskCrafter Doctor v0.1.0" },
-      { type: "info", text: "Initializing diagnostic scan of ~/.local/share/applications/..." }
+      { type: "head", text: "DeskCrafter Suite Scan v0.1.0" },
+      { type: "info", text: "Scanning launcher, autostart, PATH, service, cache, permissions, and profile modules..." }
     ]);
 
     setTimeout(() => {
       setDocLogs(prev => [
         ...prev,
-        { type: "info", text: "Scanning 24 active launcher files..." },
-        { type: "warn", text: "Duplicate launcher: Discord.desktop & discord-flatpak.desktop" }
+        { type: "info", text: "Read 8 tool manifests and mapped user-owned XDG locations." },
+        { type: "warn", text: "PATH contains duplicate ~/.local/bin entry in two shell profiles." }
       ]);
     }, 300);
 
     setTimeout(() => {
       setDocLogs(prev => [
         ...prev,
-        { type: "err", text: "Broken Exec path: Cursor.desktop points to missing target /opt/Cursor/cursor.AppImage" },
-        { type: "warn", text: "Missing icon path: Obsidian.desktop points to unindexed 'obsidian-icon'" }
+        { type: "err", text: "AppImage launcher target is missing: /opt/Cursor/cursor.AppImage" },
+        { type: "warn", text: "Cache inspector found 1.8 GB of reviewable user cache; cleanup not automatic." }
       ]);
     }, 650);
 
@@ -117,7 +103,7 @@ export default function HomePage() {
       setDocState("scanned");
       setDocLogs(prev => [
         ...prev,
-        { type: "head", text: "Diagnostic Finished: Found 1 critical error, 2 warnings." }
+        { type: "head", text: "Suite Scan Finished: Found 1 critical issue and 2 guided findings." }
       ]);
     }, 1000);
   };
@@ -126,21 +112,21 @@ export default function HomePage() {
     setDocState("repairing");
     setDocLogs(prev => [
       ...prev,
-      { type: "info", text: "Starting system repairs..." }
+      { type: "info", text: "Preparing guided fixes. No privileged operation will run automatically." }
     ]);
 
     setTimeout(() => {
       setDocLogs(prev => [
         ...prev,
-        { type: "ok", text: "Symlinked missing AppImage file to Cursor workspace" },
-        { type: "ok", text: "Resolved icon path: Obsidian system icon mapped to generic development theme" }
+        { type: "ok", text: "Queued launcher metadata repair in user-owned applications directory." },
+        { type: "ok", text: "Generated copyable systemctl command for service follow-up." }
       ]);
     }, 400);
 
     setTimeout(() => {
       setDocLogs(prev => [
         ...prev,
-        { type: "ok", text: "Deduplicated desktop entries: Preserved local installation overrides" }
+        { type: "ok", text: "Prepared PATH profile suggestion and cache review command." }
       ]);
     }, 800);
 
@@ -148,39 +134,20 @@ export default function HomePage() {
       setDocState("repaired");
       setDocLogs(prev => [
         ...prev,
-        { type: "success", text: "Success: DeskCrafter repaired launcher files without system conflicts." }
+        { type: "success", text: "Success: Safe actions prepared; no admin changes were applied automatically." }
       ]);
     }, 1200);
   };
 
-  // Icon query resolver logic calculated during render
-  const getSearchResult = () => {
-    const q = searchQuery.toLowerCase().trim();
-    if (!q) {
-      return "Type an icon query...";
-    }
-    if (q.includes("fire") || q.includes("fox")) {
-      return "/usr/share/icons/hicolor/scalable/apps/firefox.svg";
-    }
-    if (q.includes("term") || q.includes("bash")) {
-      return "/usr/share/icons/Adwaita/scalable/apps/utilities-terminal.svg";
-    }
-    if (q.includes("obs") || q.includes("note")) {
-      return "/usr/share/icons/hicolor/512x512/apps/obsidian.png";
-    }
-    if (q.includes("discord") || q.includes("chat")) {
-      return "/var/lib/flatpak/exports/share/icons/hicolor/scalable/apps/com.discordapp.Discord.svg";
-    }
-    return `~/.local/share/icons/${q}.svg (Fallback matching resolved)`;
-  };
-  const searchResult = getSearchResult();
+  const selectedTool = toolDefinitions.find((tool) => tool.id === selectedToolId) ?? toolDefinitions[0];
+  const SelectedToolIcon = selectedTool.icon;
 
   return (
     <main>
       <header className={`site-header ${scrolled ? "scrolled" : ""}`}>
         <div className="site-header-inner">
           <a className="brand" href="#top" aria-label="DeskCrafter home">
-            <Image src="/logo.png" alt="DeskCrafter Logo" width={28} height={28} className="brand-logo" />
+            <Image src="/logo.png" alt="DeskCrafter Logo" width={28} height={28} className="brand-logo" priority />
             <span>DeskCrafter</span>
           </a>
           <nav aria-label="Primary navigation">
@@ -199,7 +166,7 @@ export default function HomePage() {
         <div className="hero-copy">
           <div className="badge animate-float">
             <Sparkles size={12} />
-            <span>Open Source v0.1.0</span>
+            <span>Open Source Linux tools v0.1.0</span>
           </div>
           <h1>{siteConfig.name}</h1>
           <p>{siteConfig.tagline}</p>
@@ -223,60 +190,62 @@ export default function HomePage() {
               <span className="window-dot yellow" />
               <span className="window-dot green" />
             </div>
-            <div className="window-title">launcher-studio ~ DeskCrafter</div>
+            <div className="window-title">tool-registry ~ DeskCrafter</div>
             <div className="window-spacer" />
           </div>
 
           <div className="simulator-grid">
             <form className="simulator-form" onSubmit={handleCompile} onChange={resetCompile}>
               <div className="form-group">
-                <label htmlFor="app-name-input">Application Name</label>
-                <input
-                  id="app-name-input"
-                  type="text"
-                  value={appName}
-                  onChange={(e) => setAppName(e.target.value)}
-                  placeholder="Zen Browser"
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="exec-path-input">Executable / AppImage Path</label>
-                <input
-                  id="exec-path-input"
-                  type="text"
-                  value={execPath}
-                  onChange={(e) => setExecPath(e.target.value)}
-                  placeholder="/opt/zen/zen"
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="icon-name-input">Icon Theme Name</label>
-                <input
-                  id="icon-name-input"
-                  type="text"
-                  value={iconName}
-                  onChange={(e) => setIconName(e.target.value)}
-                  placeholder="zen-browser"
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="category-select">Primary Category</label>
+                <label htmlFor="tool-id-select">Tool Module</label>
                 <select
-                  id="category-select"
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
+                  id="tool-id-select"
+                  value={selectedToolId}
+                  onChange={(event) => setSelectedToolId(event.target.value)}
                 >
-                  <option value="Network;WebBrowser;">Web Browsers</option>
-                  <option value="Development;IDE;">Development IDEs</option>
-                  <option value="Game;Strategy;">Games / Utilities</option>
-                  <option value="AudioVideo;Player;">Media Players</option>
-                  <option value="Office;WordProcessor;">Office Suites</option>
+                  {toolDefinitions.map((tool) => (
+                    <option key={tool.id} value={tool.id}>
+                      {tool.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="target-path-input">Target Path</label>
+                <input
+                  id="target-path-input"
+                  type="text"
+                  value={targetPath}
+                  onChange={(e) => setTargetPath(e.target.value)}
+                  placeholder="~/.local/share/applications"
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="scan-scope-input">Scan Scope</label>
+                <input
+                  id="scan-scope-input"
+                  type="text"
+                  value={scanScope}
+                  onChange={(e) => setScanScope(e.target.value)}
+                  placeholder="User-owned paths"
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="safety-mode-select">Safety Mode</label>
+                <select
+                  id="safety-mode-select"
+                  value={safetyMode}
+                  onChange={(e) => setSafetyMode(e.target.value)}
+                >
+                  <option value="Read first">Read first</option>
+                  <option value="User-owned writes">User-owned writes</option>
+                  <option value="Guided admin commands">Guided admin commands</option>
+                  <option value="Inspection only">Inspection only</option>
                 </select>
               </div>
 
@@ -287,7 +256,7 @@ export default function HomePage() {
                 disabled={compileState === "compiling"}
               >
                 <MonitorCog size={16} />
-                {compileState === "compiling" ? "Compiling..." : "Build Launcher"}
+                {compileState === "compiling" ? "Preparing..." : "Prepare Tool Plan"}
               </button>
             </form>
 
@@ -299,7 +268,7 @@ export default function HomePage() {
                   className={`sim-tab-btn ${simTab === "code" ? "active" : ""}`}
                   onClick={() => setSimTab("code")}
                 >
-                  preview.desktop
+                  registry.toml
                 </button>
                 <button
                   id="tab-mock-btn"
@@ -307,42 +276,36 @@ export default function HomePage() {
                   className={`sim-tab-btn ${simTab === "mock" ? "active" : ""}`}
                   onClick={() => setSimTab("mock")}
                 >
-                  Launcher Dock
+                  Tool Preview
                 </button>
               </div>
 
               {simTab === "code" ? (
                 <div className="code-editor">
-                  <span className="code-header-line">[Desktop Entry]</span>{"\n"}
-                  <span className="code-key">Type</span>=<span className="code-value">Application</span>{"\n"}
-                  <span className="code-key">Name</span>=<span className="code-value">{appName}</span>{"\n"}
-                  <span className="code-key">Exec</span>=<span className="code-value">{execPath}</span>{"\n"}
-                  <span className="code-key">Icon</span>=<span className="code-value">{iconName}</span>{"\n"}
-                  <span className="code-key">Terminal</span>=<span className="code-value">false</span>{"\n"}
-                  <span className="code-key">Categories</span>=<span className="code-value">{category}</span>{"\n"}
-                  <span className="code-comment"># Created via DeskCrafter Marketing sandbox</span>
+                  <span className="code-header-line">[tool]</span>{"\n"}
+                  <span className="code-key">id</span>=<span className="code-value">&quot;{selectedTool.id}&quot;</span>{"\n"}
+                  <span className="code-key">name</span>=<span className="code-value">&quot;{selectedTool.title}&quot;</span>{"\n"}
+                  <span className="code-key">category</span>=<span className="code-value">&quot;{selectedTool.category}&quot;</span>{"\n"}
+                  <span className="code-key">risk</span>=<span className="code-value">&quot;{selectedTool.risk}&quot;</span>{"\n"}
+                  <span className="code-key">target</span>=<span className="code-value">&quot;{targetPath}&quot;</span>{"\n"}
+                  <span className="code-key">scope</span>=<span className="code-value">&quot;{scanScope}&quot;</span>{"\n"}
+                  <span className="code-key">mode</span>=<span className="code-value">&quot;{safetyMode}&quot;</span>{"\n"}
+                  <span className="code-comment"># Tool Registry Console: scan first, write only when explicit</span>
                 </div>
               ) : (
                 <div className="desktop-preview-pane">
-                  <div className="mock-app-dock">
-                    <div className="mock-dock-item">
-                      <div className="mock-dock-icon-box">
-                        <AppWindow size={28} />
-                      </div>
-                      <span className="mock-app-label">Files</span>
+                  <div className="registry-preview-card">
+                    <div className="registry-preview-icon">
+                      <SelectedToolIcon size={30} />
                     </div>
-                    <div className="mock-dock-item">
-                      <div className="mock-dock-icon-box active-dock-item">
-                        <TerminalIcon size={28} />
-                        <span className="mock-dock-dot" />
-                      </div>
-                      <span className="mock-app-label dock-label-active">{appName}</span>
+                    <div>
+                      <span className="registry-preview-kicker">{selectedTool.id}</span>
+                      <strong>{selectedTool.title}</strong>
+                      <p>{selectedTool.description}</p>
                     </div>
-                    <div className="mock-dock-item">
-                      <div className="mock-dock-icon-box">
-                        <Package size={28} />
-                      </div>
-                      <span className="mock-app-label">AppImage</span>
+                    <div className="registry-pill-row">
+                      <span>{selectedTool.category}</span>
+                      <span>{selectedTool.risk}</span>
                     </div>
                   </div>
                 </div>
@@ -362,7 +325,7 @@ export default function HomePage() {
                   </>
                 )}
                 {compileState === "idle" && (
-                  <span className="compile-console-idle">Click Build Launcher to compile and write metadata</span>
+                  <span className="compile-console-idle">Click Prepare Tool Plan to generate safe registry actions</span>
                 )}
               </div>
             </div>
@@ -378,7 +341,7 @@ export default function HomePage() {
             <div className="ecosystem-item">KDE Plasma</div>
             <div className="ecosystem-item">Xfce</div>
             <div className="ecosystem-item">Cinnamon</div>
-            <div className="ecosystem-item">Mate</div>
+            <div className="ecosystem-item">MATE</div>
           </div>
         </div>
       </section>
@@ -390,12 +353,11 @@ export default function HomePage() {
           <div className="feature-split">
             <div className="feature-split-content">
               <div className="feature-icon-wrapper">
-                <AppWindow size={20} />
+                {React.createElement(primaryFeatures[0].icon, { size: 20 })}
               </div>
-              <h2>Desktop Entry Studio</h2>
+              <h2>{primaryFeatures[0].title}</h2>
               <p>
-                Craft standards-compliant, beautiful `.desktop` launcher configurations without fighting complex system properties.
-                DeskCrafter provides live metadata validation, error checking, and safely manages user installations in the target XDG application path.
+                {primaryFeatures[0].description} It validates generated entries, flags missing targets, and keeps launcher writes inside explicit user-owned paths.
               </p>
             </div>
             <div className="feature-split-visual">
@@ -406,7 +368,7 @@ export default function HomePage() {
                     <span className="window-dot yellow" />
                     <span className="window-dot green" />
                   </div>
-                  <div className="window-title">Desktop Studio Visualizer</div>
+                  <div className="window-title">launcher-manager.visual</div>
                 </div>
                 <div className="concept-body-mini">
                   <div className="concept-line pulse-line" style={{ width: "90%" }} />
@@ -422,12 +384,11 @@ export default function HomePage() {
           <div className="feature-split reversed">
             <div className="feature-split-content">
               <div className="feature-icon-wrapper">
-                <Package size={20} />
+                {React.createElement(primaryFeatures[1].icon, { size: 20 })}
               </div>
-              <h2>AppImage Integrator</h2>
+              <h2>{primaryFeatures[1].title}</h2>
               <p>
-                Turn isolated standalone AppImage downloads into full system residents.
-                Extract application schemas, index icons, and link portable downloads to native launcher menu indexes automatically.
+                {primaryFeatures[1].description} Service and admin-facing surfaces stay read-first, with guided commands instead of automatic escalation.
               </p>
             </div>
             <div className="feature-split-visual">
@@ -438,7 +399,7 @@ export default function HomePage() {
                     <span className="window-dot yellow" />
                     <span className="window-dot green" />
                   </div>
-                  <div className="window-title">AppImage Schema Linker</div>
+                  <div className="window-title">profile-autostart.scan</div>
                 </div>
                 <div className="concept-body-mini">
                   <div className="concept-line concept-line-accent" style={{ width: "40%" }} />
@@ -454,98 +415,30 @@ export default function HomePage() {
       {/* Bento Grid section */}
       <section className="section bento-section">
         <div className="section-heading centered">
-          <span className="eyebrow">Advanced Capabilities</span>
-          <h2>A robust workspace to manage system shortcuts.</h2>
+          <span className="eyebrow">Expanded Tool Suite</span>
+          <h2>One registry for the Linux desktop work you actually repeat.</h2>
         </div>
         <div className="bento-grid">
-          {/* Card 1: Script Launcher */}
-          <article className="bento-item bento-large">
-            <div className="bento-icon">
-              <FileCode2 size={20} />
-            </div>
-            <h3>Script Launcher Wrapper</h3>
-            <p>Wrap custom terminal runs, script arguments, environment hooks, or executable bash instructions with a user-friendly launcher wrapper.</p>
-
-            <div className="bento-widget">
-              <div className="widget-terminal">
-                <div><span className="line-in">$</span> deskcrafter wrap --script run_app.sh</div>
-                <div><span className="line-out">[RESOLVE]</span> script path matches executable schemas</div>
-                <div><span className="line-out">[SUCCESS]</span> Wrapped shortcut exported to launcher path</div>
-              </div>
-            </div>
-          </article>
-
-          {/* Card 2: URL Launcher */}
-          <article className="bento-item">
-            <div className="bento-icon">
-              <Globe2 size={20} />
-            </div>
-            <h3>URL Quick Pin</h3>
-            <p>Create shortcuts targeting custom browser dashboards, repositories, or local servers directly.</p>
-
-            <div className="bento-widget">
-              <div className="widget-url-card">
-                <div className="widget-url-favicon">W</div>
-                <div className="widget-url-info">
-                  <span className="widget-url-title">Local Server Dashboard</span>
-                  <span className="widget-url-meta">localhost:3000 (HTTP target)</span>
+          {bentoFeatures.map((feature, index) => {
+            const FeatureIcon = feature.icon;
+            return (
+              <article key={feature.id} className={index === 0 || index === 5 ? "bento-item bento-large" : "bento-item"}>
+                <div className="bento-icon">
+                  <FeatureIcon size={20} />
                 </div>
-              </div>
-            </div>
-          </article>
+                <h3>{feature.title}</h3>
+                <p>{feature.description}</p>
 
-          {/* Card 3: Icon Manager */}
-          <article className="bento-item">
-            <div className="bento-icon">
-              <ImageIcon size={20} />
-            </div>
-            <h3>Icon Resolver Widget</h3>
-            <p>Type queries to resolve native systems icons, custom theme paths, and flatpak configurations instantly.</p>
-
-            <div className="bento-widget widget-layout-vertical">
-              <div className="widget-search">
-                <Search size={12} className="icon-muted" />
-                <input
-                  id="icon-resolver-search"
-                  type="text"
-                  className="widget-search-field"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Type 'firefox' or 'terminal'..."
-                />
-              </div>
-              <div className="widget-search-results">
-                <div className="widget-search-item">
-                  <span>path:</span>
-                  <span className="highlight text-ellipsis" title={searchResult}>
-                    {searchResult}
-                  </span>
+                <div className="bento-widget">
+                  <div className="widget-terminal">
+                    <div><span className="line-in">$</span> deskcrafter tools inspect {feature.id}</div>
+                    <div><span className="line-out">[CATEGORY]</span> {feature.category}</div>
+                    <div><span className="line-out">[BOUNDARY]</span> {feature.risk}</div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          </article>
-
-          {/* Card 4: Launcher Doctor */}
-          <article className="bento-item bento-large">
-            <div className="bento-icon">
-              <Stethoscope size={20} />
-            </div>
-            <h3>Launcher Doctor Dashboard</h3>
-            <p>Scan background applications menu folders for broken launcher links, dead binary files, and missing theme assets.</p>
-
-            <div className="bento-widget">
-              <div className="widget-stats">
-                <div className="widget-stat-box">
-                  <div className="widget-stat-val">24</div>
-                  <div className="widget-stat-lbl">Parsed Launchers</div>
-                </div>
-                <div className="widget-stat-box">
-                  <div className="widget-stat-val widget-stat-error">3</div>
-                  <div className="widget-stat-lbl">Issues Found</div>
-                </div>
-              </div>
-            </div>
-          </article>
+              </article>
+            );
+          })}
         </div>
       </section>
 
@@ -553,26 +446,23 @@ export default function HomePage() {
       <section className="split-section" id="linux">
         <div>
           <span className="eyebrow">Linux Integration</span>
-          <h2>Secure Tauri backend runtime operating inside user-owned XDG directories.</h2>
+          <h2>Secure Tauri backend runtime with read-first Linux diagnostics.</h2>
            <p className="section-body-text">
-            DeskCrafter operates on a clean architecture built for security. Your application metadata is read from and written to directories you own.
-            No root requirements, no daemon processes, and completely standalone local execution.
+            DeskCrafter reads broadly and writes narrowly. Launcher and permission helpers can act on explicit user-owned paths, while services and cache cleanup remain inspection-first with guided follow-up commands.
           </p>
           <div className="principle-list">
-            <div className="principle">
-              <ShieldCheck size={18} />
-              <div>
-                <strong>Security & Sovereignty</strong>
-                <span>Launcher configurations stay entirely on your local machine. No external services or accounts needed.</span>
-              </div>
-            </div>
-            <div className="principle">
-              <BadgeCheck size={18} />
-              <div>
-                <strong>Safe Path Handling</strong>
-                <span>Creates files using standard XDG specs. Rest assured that the core system directories will never be edited.</span>
-              </div>
-            </div>
+            {principles.map((principle) => {
+              const PrincipleIcon = principle.icon;
+              return (
+                <div className="principle" key={principle.title}>
+                  <PrincipleIcon size={18} />
+                  <div>
+                    <strong>{principle.title}</strong>
+                    <span>{principle.description}</span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -585,7 +475,7 @@ export default function HomePage() {
                 <span className="window-dot yellow" />
                 <span className="window-dot green" />
               </div>
-              <div className="window-title">doctor-terminal ~ scan</div>
+              <div className="window-title">suite-scan ~ registry</div>
               <div className="window-spacer" />
             </div>
 
@@ -593,7 +483,7 @@ export default function HomePage() {
               {docState === "idle" && (
                 <button id="run-diagnostics-btn" className="doc-btn" onClick={runDiagnostics}>
                   <Play size={11} />
-                  Run Diagnostics
+                  Run Suite Scan
                 </button>
               )}
               {docState === "scanning" && (
@@ -605,19 +495,19 @@ export default function HomePage() {
               {docState === "scanned" && (
                 <button id="run-repair-btn" className="doc-btn doc-btn-repair" onClick={runRepair}>
                   <RotateCcw size={11} />
-                  Fix Issues
+                  Prepare Guided Fixes
                 </button>
               )}
               {docState === "repairing" && (
                 <span className="doc-btn doc-btn-disabled">
                   <span className="console-spinner" />
-                  Repairing...
+                  Preparing...
                 </span>
               )}
               {docState === "repaired" && (
                 <span className="doc-btn doc-btn-repaired">
                   <CheckCircle size={11} />
-                  System Repaired
+                  Actions Prepared
                 </span>
               )}
             </div>
@@ -680,8 +570,10 @@ export default function HomePage() {
         <div className="cta-card">
           <div className="cta-content">
             <MonitorCog size={30} className="cta-icon" />
-            <h2>Ready to clean your application menu launchers?</h2>
-            <p>{siteConfig.description}</p>
+            <h2>Ready to inspect your Linux desktop toolchain?</h2>
+            <p>
+              Manage launchers and autostart, inspect AppImages, PATH, services, cache, permissions, and system profile checks from one local-first workspace.
+            </p>
             <div className="cta-actions">
               <Button href={siteConfig.githubUrl}>
                 <Github size={16} />
@@ -709,7 +601,7 @@ export default function HomePage() {
             </div>
           </div>
           <div className="footer-bottom">
-            <p>DeskCrafter: Standalone launcher suite built for the Linux desktop.</p>
+            <p>DeskCrafter: Standalone Linux desktop tools suite built for read-first diagnostics and user-owned launcher workflows.</p>
           </div>
         </div>
       </footer>

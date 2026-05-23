@@ -96,12 +96,16 @@ a {
 }
 
 .brand-logo {
-  border-radius: 6px;
-  transition: transform 0.3s;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  box-shadow: 0 0 18px rgba(255, 15, 57, 0.24);
+  transition: transform 0.3s, box-shadow 0.3s;
 }
 
 .brand:hover .brand-logo {
   transform: rotate(6deg) scale(1.05);
+  box-shadow: 0 0 24px rgba(255, 15, 57, 0.34);
 }
 
 .site-header nav {
@@ -453,6 +457,72 @@ h1 {
   align-items: center;
   justify-content: center;
   min-height: 280px;
+}
+
+.registry-preview-card {
+  width: min(100%, 360px);
+  min-height: 260px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 22px;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 80% 0%, rgba(255, 15, 57, 0.18), transparent 45%),
+    rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+}
+
+.registry-preview-icon {
+  width: 58px;
+  height: 58px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  color: white;
+  background: linear-gradient(135deg, var(--cherry), var(--cherry-dark));
+  box-shadow: 0 0 18px var(--cherry-glow);
+}
+
+.registry-preview-kicker {
+  display: block;
+  margin-bottom: 8px;
+  color: #ff8b9f;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.registry-preview-card strong {
+  display: block;
+  font-size: 24px;
+  line-height: 1.2;
+}
+
+.registry-preview-card p {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.registry-pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.registry-pill-row span {
+  border-radius: 999px;
+  padding: 6px 10px;
+  color: #c4ccd9;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
 }
 
 .mock-app-dock {
@@ -1250,16 +1320,11 @@ h1 {
   font-size: 16px;
 }
 
-.brand-mark-small {
+.brand-logo-small {
   width: 22px;
   height: 22px;
   border-radius: 6px;
-  display: grid;
-  place-items: center;
-  background: linear-gradient(135deg, var(--cherry), var(--cherry-dark));
-  color: white;
-  font-size: 11px;
-  font-weight: 900;
+  box-shadow: 0 0 14px rgba(255, 15, 57, 0.18);
 }
 
 .footer-links {
