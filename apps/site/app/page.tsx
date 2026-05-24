@@ -15,7 +15,11 @@ import {
   XCircle,
 } from "lucide-react";
 import { Button } from "../components/Button";
-import { bentoFeatures, primaryFeatures, principles, siteConfig, toolDefinitions } from "../lib/site-content";
+import { siteConfig } from "../lib/site-content";
+import { motion, Variants } from "framer-motion";
+import { AmbientBackground } from "../components/AmbientBackground";
+import { SpotlightCard } from "../components/SpotlightCard";
+import { bentoFeatures, primaryFeatures, principles, toolDefinitions } from "../lib/site-content";
 
 export default function HomePage() {
   const [selectedToolId, setSelectedToolId] = useState("launcher_manager");
@@ -33,6 +37,9 @@ export default function HomePage() {
     { type: "info", text: "Registry scanner ready. Press 'Run Suite Scan' to inspect Linux tool modules." }
   ]);
 
+  // Terminal Widget Reveal State
+  const [termState, setTermState] = useState(0);
+
   // Scroll State for Floating Pill Navbar
   const [scrolled, setScrolled] = useState(false);
 
@@ -47,6 +54,21 @@ export default function HomePage() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Terminal Auto-Reveal Animation for Bento Cards
+  useEffect(() => {
+    let timeout: NodeJS.Timeout;
+    if (termState === 0) {
+      timeout = setTimeout(() => setTermState(1), 1200);
+    } else if (termState === 1) {
+      timeout = setTimeout(() => setTermState(2), 600);
+    } else if (termState === 2) {
+      timeout = setTimeout(() => {
+        setTermState(0);
+      }, 3000);
+    }
+    return () => clearTimeout(timeout);
+  }, [termState]);
 
   // Compile simulator action
   const handleCompile = (e: React.FormEvent) => {
@@ -142,6 +164,41 @@ export default function HomePage() {
   const selectedTool = toolDefinitions.find((tool) => tool.id === selectedToolId) ?? toolDefinitions[0];
   const SelectedToolIcon = selectedTool.icon;
 
+  const fadeUpVariants: Variants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
+  };
+
+  const scaleUpVariants: Variants = {
+    hidden: { opacity: 0, scale: 0.95 },
+    visible: { opacity: 1, scale: 1, transition: { duration: 0.6, ease: "easeOut" } }
+  };
+
+  const slideLeftVariants: Variants = {
+    hidden: { opacity: 0, x: -30 },
+    visible: { opacity: 1, x: 0, transition: { duration: 0.6, ease: "easeOut" } }
+  };
+
+  const slideRightVariants: Variants = {
+    hidden: { opacity: 0, x: 30 },
+    visible: { opacity: 1, x: 0, transition: { duration: 0.6, ease: "easeOut" } }
+  };
+
+  const staggerContainer: Variants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const bentoItemVariants: Variants = {
+    hidden: { opacity: 0, y: 15 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } }
+  };
+
   return (
     <main>
       <header className={`site-header ${scrolled ? "scrolled" : ""}`}>
@@ -163,7 +220,13 @@ export default function HomePage() {
       </header>
 
       <section className="hero" id="top">
-        <div className="hero-copy">
+        <AmbientBackground />
+        <motion.div 
+          className="hero-copy"
+          initial="hidden"
+          animate="visible"
+          variants={fadeUpVariants}
+        >
           <div className="badge animate-float">
             <Sparkles size={12} />
             <span>Open Source Linux tools v0.1.0</span>
@@ -180,10 +243,16 @@ export default function HomePage() {
               Explore Features
             </Button>
           </div>
-        </div>
+        </motion.div>
 
         {/* Interactive Workspace Simulator Container */}
-        <div className="simulator-container glass-panel">
+        <motion.div 
+          className="simulator-container glass-panel"
+          initial="hidden"
+          animate="visible"
+          variants={scaleUpVariants}
+          transition={{ delay: 0.2 }}
+        >
           <div className="simulator-header">
             <div className="window-controls">
               <span className="window-dot red" />
@@ -330,10 +399,16 @@ export default function HomePage() {
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
       </section>
 
-      <section className="ecosystem-strip" aria-label="Supported Ecosystems">
+      <motion.section 
+        className="ecosystem-strip" aria-label="Supported Ecosystems"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+        variants={scaleUpVariants}
+      >
         <div className="ecosystem-inner">
           <div className="ecosystem-title">Supports standard Linux desktop environments</div>
           <div className="ecosystem-logos">
@@ -344,13 +419,19 @@ export default function HomePage() {
             <div className="ecosystem-item">MATE</div>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Feature Splits */}
       <section className="section" id="features">
         <div className="feature-splits">
           {/* Split 1 */}
-          <div className="feature-split">
+          <motion.div 
+            className="feature-split"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={slideLeftVariants}
+          >
             <div className="feature-split-content">
               <div className="feature-icon-wrapper">
                 {React.createElement(primaryFeatures[0].icon, { size: 20 })}
@@ -378,10 +459,16 @@ export default function HomePage() {
                 </div>
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Split 2 */}
-          <div className="feature-split reversed">
+          <motion.div 
+            className="feature-split reversed"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={slideRightVariants}
+          >
             <div className="feature-split-content">
               <div className="feature-icon-wrapper">
                 {React.createElement(primaryFeatures[1].icon, { size: 20 })}
@@ -408,7 +495,7 @@ export default function HomePage() {
                 </div>
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -418,11 +505,18 @@ export default function HomePage() {
           <span className="eyebrow">Expanded Tool Suite</span>
           <h2>One registry for the Linux desktop work you actually repeat.</h2>
         </div>
-        <div className="bento-grid">
+        <motion.div 
+          className="bento-grid"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+          variants={staggerContainer}
+        >
           {bentoFeatures.map((feature, index) => {
             const FeatureIcon = feature.icon;
             return (
-              <article key={feature.id} className={index === 0 || index === 5 ? "bento-item bento-large" : "bento-item"}>
+              <motion.div key={feature.id} variants={bentoItemVariants}>
+                <SpotlightCard className={index === 0 || index === 5 ? "bento-item bento-large" : "bento-item"}>
                 <div className="bento-icon">
                   <FeatureIcon size={20} />
                 </div>
@@ -432,18 +526,25 @@ export default function HomePage() {
                 <div className="bento-widget">
                   <div className="widget-terminal">
                     <div><span className="line-in">$</span> deskcrafter tools inspect {feature.id}</div>
-                    <div><span className="line-out">[CATEGORY]</span> {feature.category}</div>
-                    <div><span className="line-out">[BOUNDARY]</span> {feature.risk}</div>
+                    {termState >= 1 && <div><span className="line-out">[CATEGORY]</span> {feature.category}</div>}
+                    {termState >= 2 && <div><span className="line-out">[BOUNDARY]</span> {feature.risk}</div>}
                   </div>
                 </div>
-              </article>
+                </SpotlightCard>
+              </motion.div>
             );
           })}
-        </div>
+        </motion.div>
       </section>
 
       {/* Linux Architecture & Live Doctor scan simulator */}
-      <section className="split-section" id="linux">
+      <motion.section 
+        className="split-section" id="linux"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+        variants={fadeUpVariants}
+      >
         <div>
           <span className="eyebrow">Linux Integration</span>
           <h2>Secure Tauri backend runtime with read-first Linux diagnostics.</h2>
@@ -563,10 +664,16 @@ export default function HomePage() {
             </div>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Download Section */}
-      <section className="section" id="download">
+      <motion.section 
+        className="section" id="download"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+        variants={scaleUpVariants}
+      >
         <div className="cta-card">
           <div className="cta-content">
             <MonitorCog size={30} className="cta-icon" />
@@ -585,7 +692,7 @@ export default function HomePage() {
             </div>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       <footer className="site-footer">
         <div className="footer-inner">

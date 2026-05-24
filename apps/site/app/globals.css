@@ -1398,3 +1398,49 @@ h1 {
     display: none; /* Only show the logo on small screens to prevent overlap */
   }
 }
+
+/* Spotlight Card */
+.spotlight-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.spotlight-layer {
+  pointer-events: none;
+  position: absolute;
+  inset: -1px;
+  transition: opacity 0.3s ease;
+  z-index: 10;
+}
+
+/* Ambient Background */
+.ambient-background {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.ambient-orb {
+  position: absolute;
+  border-radius: 50%;
+}
+
+.ambient-orb.orb-1 {
+  top: 20%;
+  left: 20%;
+  width: 500px;
+  height: 500px;
+  background: rgba(255, 15, 57, 0.04);
+  filter: blur(80px);
+}
+
+.ambient-orb.orb-2 {
+  bottom: 20%;
+  right: 20%;
+  width: 600px;
+  height: 600px;
+  background: rgba(255, 15, 57, 0.02);
+  filter: blur(100px);
+}
