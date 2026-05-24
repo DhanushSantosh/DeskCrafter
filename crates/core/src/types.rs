@@ -140,17 +140,41 @@ pub enum ToolCategory {
     Launchers,
     Startup,
     Apps,
-    System,
-    Storage,
+    Associations,
+    Sandboxes,
     Permissions,
+    Advanced,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
-pub enum RiskLevel {
+pub enum PrivilegeLevel {
     ReadOnly,
     UserWrite,
-    GuidedAdmin,
+    ElevatedWrite,
+    SystemRepair,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum ToolActionKind {
+    Scan,
+    Repair,
+    Install,
+    Update,
+    Remove,
+    ElevatedAction,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct ToolActionDescriptor {
+    pub id: String,
+    pub label: String,
+    pub kind: ToolActionKind,
+    pub requires_path: bool,
+    pub requires_value: bool,
+    pub requires_elevation: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -160,9 +184,12 @@ pub struct ToolDefinition {
     pub label: String,
     pub category: ToolCategory,
     pub description: String,
-    pub risk_level: RiskLevel,
-    pub capabilities: Vec<String>,
+    pub privilege_level: PrivilegeLevel,
+    pub elevation_mode: String,
+    pub reversible: bool,
+    pub desktop_targets: Vec<String>,
     pub supported_distros: Vec<String>,
+    pub primary_actions: Vec<ToolActionDescriptor>,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
@@ -170,13 +197,19 @@ pub struct ToolDefinition {
 pub struct ToolScanInput {
     pub query: Option<String>,
     pub path: Option<String>,
+    pub target_id: Option<String>,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ToolActionInput {
+    pub query: Option<String>,
     pub path: Option<String>,
     pub action: Option<String>,
+    pub target_id: Option<String>,
+    pub value: Option<String>,
+    pub secondary_value: Option<String>,
+    pub allow_elevation: Option<bool>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -184,7 +217,7 @@ pub struct ToolActionInput {
 pub struct GuidedCommand {
     pub label: String,
     pub command: String,
-    pub risk_level: RiskLevel,
+    pub privilege_level: PrivilegeLevel,
     pub explanation: String,
 }
 
@@ -195,7 +228,10 @@ pub struct ToolResult {
     pub summary: String,
     pub data: serde_json::Value,
     pub warnings: Vec<String>,
-    pub repair_suggestions: Vec<String>,
+    pub blocking_issues: Vec<String>,
+    pub performed_actions: Vec<String>,
+    pub before_after_state: Option<serde_json::Value>,
+    pub restart_or_refresh_needed: Vec<String>,
     pub guided_commands: Vec<GuidedCommand>,
 }
 

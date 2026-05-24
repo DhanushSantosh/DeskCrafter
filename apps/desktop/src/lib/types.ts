@@ -87,36 +87,67 @@ export type ToolCategory =
   | "launchers"
   | "startup"
   | "apps"
-  | "system"
-  | "storage"
-  | "permissions";
+  | "associations"
+  | "sandboxes"
+  | "permissions"
+  | "advanced";
 
-export type RiskLevel = "read_only" | "user_write" | "guided_admin";
+export type PrivilegeLevel =
+  | "read_only"
+  | "user_write"
+  | "elevated_write"
+  | "system_repair";
+
+export type ToolActionKind =
+  | "scan"
+  | "repair"
+  | "install"
+  | "update"
+  | "remove"
+  | "elevated_action";
+
+export interface ToolActionDescriptor {
+  id: string;
+  label: string;
+  kind: ToolActionKind;
+  requiresPath: boolean;
+  requiresValue: boolean;
+  requiresElevation: boolean;
+}
 
 export interface ToolDefinition {
   id: string;
   label: string;
   category: ToolCategory;
   description: string;
-  riskLevel: RiskLevel;
-  capabilities: string[];
+  privilegeLevel: PrivilegeLevel;
+  elevationMode: string;
+  reversible: boolean;
+  desktopTargets: string[];
   supportedDistros: string[];
+  primaryActions: ToolActionDescriptor[];
 }
 
 export interface ToolScanInput {
   query?: string | null;
   path?: string | null;
+  targetId?: string | null;
 }
 
 export interface ToolActionInput {
+  query?: string | null;
   path?: string | null;
   action?: string | null;
+  targetId?: string | null;
+  value?: string | null;
+  secondaryValue?: string | null;
+  allowElevation?: boolean | null;
 }
 
 export interface GuidedCommand {
   label: string;
   command: string;
-  riskLevel: RiskLevel;
+  privilegeLevel: PrivilegeLevel;
   explanation: string;
 }
 
@@ -125,7 +156,10 @@ export interface ToolResult {
   summary: string;
   data: unknown;
   warnings: string[];
-  repairSuggestions: string[];
+  blockingIssues: string[];
+  performedActions: string[];
+  beforeAfterState?: unknown;
+  restartOrRefreshNeeded: string[];
   guidedCommands: GuidedCommand[];
 }
 

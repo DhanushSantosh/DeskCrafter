@@ -17,8 +17,6 @@ type ApiResult<T> =
 - `parse_error`
 - `unsupported_target`
 
-## Commands
-
 ## Suite Commands
 
 - `list_tools()`
@@ -50,35 +48,67 @@ type ToolCategory =
   | "launchers"
   | "startup"
   | "apps"
-  | "system"
-  | "storage"
-  | "permissions";
+  | "associations"
+  | "sandboxes"
+  | "permissions"
+  | "advanced";
 
-type RiskLevel = "read_only" | "user_write" | "guided_admin";
+type PrivilegeLevel =
+  | "read_only"
+  | "user_write"
+  | "elevated_write"
+  | "system_repair";
+
+type ToolActionKind =
+  | "scan"
+  | "repair"
+  | "install"
+  | "update"
+  | "remove"
+  | "elevated_action";
+
+type ToolActionDescriptor = {
+  id: string;
+  label: string;
+  kind: ToolActionKind;
+  requiresPath: boolean;
+  requiresValue: boolean;
+  requiresElevation: boolean;
+};
 
 type ToolDefinition = {
   id: string;
   label: string;
   category: ToolCategory;
   description: string;
-  riskLevel: RiskLevel;
-  capabilities: string[];
+  privilegeLevel: PrivilegeLevel;
+  elevationMode: string;
+  reversible: boolean;
+  desktopTargets: string[];
   supportedDistros: string[];
+  primaryActions: ToolActionDescriptor[];
 };
 
 type ToolScanInput = {
   query?: string | null;
   path?: string | null;
+  targetId?: string | null;
 };
 
-type ToolActionInput = ToolScanInput & {
+type ToolActionInput = {
+  query?: string | null;
+  path?: string | null;
   action?: string | null;
+  targetId?: string | null;
+  value?: string | null;
+  secondaryValue?: string | null;
+  allowElevation?: boolean | null;
 };
 
 type GuidedCommand = {
   label: string;
   command: string;
-  riskLevel: RiskLevel;
+  privilegeLevel: PrivilegeLevel;
   explanation: string;
 };
 
@@ -87,22 +117,25 @@ type ToolResult<T = unknown> = {
   summary: string;
   data: T;
   warnings: string[];
-  repairSuggestions: string[];
+  blockingIssues: string[];
+  performedActions: string[];
+  beforeAfterState?: unknown;
+  restartOrRefreshNeeded: string[];
   guidedCommands: GuidedCommand[];
 };
 ```
 
 ## Stable Tool IDs
 
-- `launcher_manager`
-- `autostart_manager`
-- `appimage_manager`
-- `environment_path`
-- `service_viewer`
-- `disk_cache_inspector`
-- `permissions_helper`
+- `launcher_repair_integrator`
+- `portable_app_integrator`
+- `autostart_actions`
+- `default_apps_mime_manager`
+- `flatpak_permissions_manager`
+- `permission_ownership_repair`
+- `service_actions`
 - `system_profile`
 
 ## Action Rules
 
-Suite actions are read-first. `apply_tool_action()` is only for explicit user-owned operations supported by a tool. Unsupported, admin-level, or destructive actions return `unsupported_target`, `permission_denied`, or a guided command instead of attempting escalation.
+Suite actions are workflow-oriented. `validate_tool_action()` previews the intended change, required inputs, and any blocking issues. `apply_tool_action()` performs user-scope changes directly and can run explicit elevated actions via a polkit-backed shell flow where supported. Tools must report follow-up refresh steps such as desktop cache rebuilds, MIME updates, service reloads, or Flatpak app restarts.

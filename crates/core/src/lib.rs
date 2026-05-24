@@ -14,7 +14,7 @@ pub use platform::SystemProfile;
 pub use tools::ToolRegistry;
 pub use types::{
     ApiError, ApiResult, DesktopEntryContent, GuidedCommand, IconResolution, InspectTargetResult,
-    Launcher, LauncherInput, LauncherIssue, LauncherKind, RepairOptions, RiskLevel,
-    ToolActionInput, ToolCategory, ToolDefinition, ToolResult, ToolScanInput, ToolStatus,
-    ValidationReport,
+    Launcher, LauncherInput, LauncherIssue, LauncherKind, PrivilegeLevel, RepairOptions,
+    ToolActionDescriptor, ToolActionInput, ToolActionKind, ToolCategory, ToolDefinition,
+    ToolResult, ToolScanInput, ToolStatus, ValidationReport,
 };

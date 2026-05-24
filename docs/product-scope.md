@@ -1,30 +1,30 @@
 # DeskCrafter Product Scope
 
-DeskCrafter v1 is a practical Linux tools suite for inspecting and managing everyday desktop integration tasks across common distributions. Launcher management remains a first-class module, but the product is no longer defined by `.desktop` files alone.
+DeskCrafter v1 is an action-first Linux desktop integration and repair suite. Its job is to make apps appear, launch, open files correctly, integrate at login, and behave sanely across mixed desktop environments.
 
 ## V1 Tool Modules
 
-- Launcher Manager: create, edit, validate, install, launch, repair, and inspect user-owned launchers, including AppImage, script, URL, icon, category, and launcher doctor workflows.
-- Autostart Manager: list user and system autostart entries, with user-owned autostart changes planned behind the same reversible launcher model.
-- AppImage Manager: find AppImages in common user folders, detect executable-bit state, and route integration through Launcher Manager.
-- Environment & PATH Viewer: inspect PATH entries, duplicate directories, missing directories, common user bin folders, and shell profile files.
-- Service Viewer: read user and system systemd service availability without admin writes and show guided commands for privileged service actions.
-- Disk & Cache Inspector: inspect safe user-owned cache locations and report sizes without deleting data in the first backend pass.
-- Permissions Helper: inspect file ownership and executability; allow clear user-owned chmod actions and show guided commands for admin-owned paths.
-- System Profile: report distro, desktop session, XDG paths, package-manager hints, systemd availability, Flatpak availability, and AppImage support.
+- Launcher Repair & Integrator: create, edit, validate, refresh, repair, globally install, launch, and remove launchers so apps actually show up and run.
+- Portable App Integrator: integrate AppImages, scripts, and standalone binaries into the desktop by moving them into a managed location, marking them executable, and creating launchers.
+- Autostart Actions: enable, disable, duplicate, and repair user autostart entries under XDG autostart.
+- Default Apps & MIME Manager: inspect and set file associations, browser defaults, and URL scheme handlers.
+- Flatpak Permissions Manager: inspect Flatpak overrides, grant targeted filesystem access, reset overrides, and support system-scope permission changes where needed.
+- Permission & Ownership Repair: repair executable bits, recreate user-owned XDG integration directories, and fix ownership drift.
+- Service Actions: advanced user/system systemd actions for tools that depend on background services.
+- System Profile: support-only module for distro, desktop session, XDG path, and runtime capability detection.
 
 ## Out Of Scope For V1
 
-- Silent privilege escalation, root writes, and system-level mutation.
-- Destructive cleanup or automatic deletion of caches.
-- Package installation, package removal, and distro-specific admin dashboards.
-- Global launcher or autostart installation as a default path.
+- Generic cache cleanup and broad Linux housekeeping tools.
+- Package manager frontends and distro-specific administration dashboards.
+- Silent privilege escalation. Elevated actions must be explicit and user-visible.
+- Destructive system actions without a targeted repair or integration purpose.
 
 ## Product Principles
 
-- Local first: launcher data lives on the user's machine.
-- Read first: inspect and explain system state before offering any action.
-- Least privilege: write only to user-owned locations by default.
-- Repairable: destructive actions create backups where practical.
-- Distro aware: prefer FreeDesktop and XDG behavior over distro-specific assumptions.
-- Guided admin: privileged operations are copyable commands with explanations and risk labels, not automatic elevation.
+- Local first: launcher, autostart, and association state live on the user's machine.
+- Action first: scans exist to support fixes, not as the product end state.
+- Desktop focused: prioritize app visibility, launchability, startup behavior, MIME handling, and sandbox repair over generic system tooling.
+- Escalate explicitly: use elevation only where it materially improves the workflow and the change is understandable.
+- Repairable: user-scope actions should be reversible, and elevated actions should leave clear before/after state where possible.
+- Distro aware: prefer FreeDesktop and XDG behavior, then add desktop-environment-specific refresh steps when required.

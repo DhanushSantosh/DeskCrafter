@@ -3,16 +3,19 @@ import {
   AppWindow,
   BadgeCheck,
   Boxes,
+  Fingerprint,
+  FolderCog,
   Gauge,
-  HardDrive,
   Image,
-  KeyRound,
+  Link2,
   Package,
   Play,
   RefreshCw,
   Save,
   Search,
+  Settings2,
   ShieldCheck,
+  Sparkles,
   Stethoscope,
   Terminal,
   Trash2,
@@ -35,6 +38,7 @@ import type {
   LauncherIssue,
   LauncherKind,
   SystemProfile,
+  ToolActionDescriptor,
   ToolCategory,
   ToolDefinition,
   ToolResult,
@@ -46,33 +50,93 @@ const categoryLabels: Record<ToolCategory, string> = {
   launchers: "Launchers",
   startup: "Startup",
   apps: "Apps",
-  system: "System",
-  storage: "Storage",
+  associations: "Associations",
+  sandboxes: "Sandboxes",
   permissions: "Permissions",
+  advanced: "Advanced",
 };
 
 const categoryIcons = {
   launchers: AppWindow,
   startup: Gauge,
   apps: Package,
-  system: Terminal,
-  storage: HardDrive,
-  permissions: KeyRound,
+  associations: Link2,
+  sandboxes: ShieldCheck,
+  permissions: Fingerprint,
+  advanced: Settings2,
 };
 
 const toolIcons: Record<string, typeof AppWindow> = {
-  launcher_manager: AppWindow,
-  autostart_manager: Gauge,
-  appimage_manager: Package,
-  environment_path: Terminal,
-  service_viewer: ShieldCheck,
-  disk_cache_inspector: HardDrive,
-  permissions_helper: KeyRound,
+  launcher_repair_integrator: AppWindow,
+  portable_app_integrator: Package,
+  autostart_actions: Gauge,
+  default_apps_mime_manager: Link2,
+  flatpak_permissions_manager: ShieldCheck,
+  permission_ownership_repair: Fingerprint,
+  service_actions: Terminal,
   system_profile: Boxes,
 };
 
-const launcherToolId = "launcher_manager";
-const permissionsToolId = "permissions_helper";
+const launcherToolId = "launcher_repair_integrator";
+
+const toolInputConfig: Record<
+  string,
+  {
+    pathLabel: string;
+    pathPlaceholder: string;
+    valueLabel: string;
+    valuePlaceholder: string;
+  }
+> = {
+  launcher_repair_integrator: {
+    pathLabel: "Inspect target",
+    pathPlaceholder: "Path to AppImage, script, executable, or https:// URL",
+    valueLabel: "Selected launcher id",
+    valuePlaceholder: "Uses the selected launcher when available",
+  },
+  portable_app_integrator: {
+    pathLabel: "Portable target",
+    pathPlaceholder: "/home/dhanush/Downloads/MyApp.AppImage",
+    valueLabel: "Launcher id",
+    valuePlaceholder: "Used for remove integration",
+  },
+  autostart_actions: {
+    pathLabel: "Autostart path or target",
+    pathPlaceholder: "~/.config/autostart/example.desktop",
+    valueLabel: "Launcher id or new file name",
+    valuePlaceholder: "Selected launcher id or copied desktop file name",
+  },
+  default_apps_mime_manager: {
+    pathLabel: "MIME type",
+    pathPlaceholder: "application/pdf or x-scheme-handler/https",
+    valueLabel: "Desktop file id",
+    valuePlaceholder: "org.mozilla.firefox.desktop",
+  },
+  flatpak_permissions_manager: {
+    pathLabel: "Flatpak app id",
+    pathPlaceholder: "org.mozilla.firefox",
+    valueLabel: "Filesystem path",
+    valuePlaceholder: "/home/dhanush/Documents",
+  },
+  permission_ownership_repair: {
+    pathLabel: "Path to repair",
+    pathPlaceholder: "~/.local/share/applications",
+    valueLabel: "Optional value",
+    valuePlaceholder: "Unused for current actions",
+  },
+  service_actions: {
+    pathLabel: "Service name",
+    pathPlaceholder: "pipewire.service",
+    valueLabel: "Optional value",
+    valuePlaceholder: "Unused for current actions",
+  },
+  system_profile: {
+    pathLabel: "Optional query",
+    pathPlaceholder: "Leave empty to scan the current system",
+    valueLabel: "Optional value",
+    valuePlaceholder: "Unused for current actions",
+  },
+};
 
 type SuiteSnapshot = {
   systemProfile: SystemProfile;
@@ -106,6 +170,9 @@ export default function App() {
   const [guidedCommands, setGuidedCommands] = useState<GuidedCommand[]>([]);
   const [status, setStatus] = useState("Ready");
   const [targetInput, setTargetInput] = useState("");
+  const [actionValue, setActionValue] = useState("");
+  const [secondaryValue, setSecondaryValue] = useState("");
+  const [allowElevation, setAllowElevation] = useState(true);
 
   const selectedLauncher = useMemo(
     () => launchers.find((launcher) => launcher.id === selectedId) ?? null,
@@ -126,6 +193,8 @@ export default function App() {
     }
     return grouped;
   }, [tools]);
+
+  const inputConfig = activeTool ? toolInputConfig[activeTool.id] ?? toolInputConfig.system_profile : toolInputConfig.system_profile;
 
   const refreshSuite = useCallback(async (announce = true) => {
     if (announce) {
@@ -219,6 +288,7 @@ export default function App() {
     const result = await api.runToolScan(toolId, {
       query: targetInput || null,
       path: targetInput || null,
+      targetId: selectedId,
     });
     const commands = await api.listGuidedAdminCommands(toolId);
     setToolResult(result);
@@ -297,6 +367,37 @@ export default function App() {
     await refreshSuite();
   }
 
+  async function runPrimaryAction(tool: ToolDefinition, descriptor: ToolActionDescriptor) {
+    if (descriptor.kind === "scan") {
+      await scanTool(tool.id);
+      return;
+    }
+
+    const input = {
+      action: descriptor.id,
+      path: targetInput || null,
+      query: targetInput || null,
+      targetId: selectedId,
+      value: actionValue || selectedId || null,
+      secondaryValue: secondaryValue || null,
+      allowElevation,
+    };
+
+    const validationResult = await api.validateToolAction(tool.id, input);
+    setToolResult(validationResult);
+    setGuidedCommands(validationResult.guidedCommands);
+    if (validationResult.blockingIssues.length > 0) {
+      setStatus("Action blocked");
+      return;
+    }
+
+    const applied = await api.applyToolAction(tool.id, input);
+    setToolResult(applied);
+    setGuidedCommands(applied.guidedCommands);
+    setStatus(applied.summary);
+    await refreshSuite(false);
+  }
+
   const ActiveIcon = activeTool ? toolIcons[activeTool.id] ?? Activity : Activity;
 
   return (
@@ -306,7 +407,7 @@ export default function App() {
           <img className="brand-logo" src="/icon.png" alt="" aria-hidden="true" />
           <div>
             <div className="brand-name">DeskCrafter</div>
-            <div className="brand-subtitle">Linux Tools Suite</div>
+            <div className="brand-subtitle">Desktop Repair Suite</div>
           </div>
         </div>
 
@@ -368,7 +469,7 @@ export default function App() {
             <div className="section-heading">
               <ActiveIcon size={24} />
               <div>
-                <h1>{activeTool?.label ?? "Linux Tools Suite"}</h1>
+                <h1>{activeTool?.label ?? "DeskCrafter"}</h1>
                 <p>{activeTool?.description ?? "Loading suite registry"}</p>
               </div>
             </div>
@@ -377,11 +478,7 @@ export default function App() {
               <input
                 value={targetInput}
                 onChange={(event) => setTargetInput(event.target.value)}
-                placeholder={
-                  activeToolId === launcherToolId
-                    ? "Inspect an AppImage, script path, executable, or https:// URL"
-                    : "Optional path or query for this tool"
-                }
+                placeholder={inputConfig.pathPlaceholder}
               />
               <Button variant="secondary" onClick={() => void inspectTarget()}>
                 <Search size={16} />
@@ -389,9 +486,34 @@ export default function App() {
               </Button>
             </div>
 
-            {activeTool ? (
-              <ToolMeta tool={activeTool} />
-            ) : null}
+            <div className="action-grid">
+              <label>
+                <span>{inputConfig.valueLabel}</span>
+                <input
+                  value={actionValue}
+                  onChange={(event) => setActionValue(event.target.value)}
+                  placeholder={inputConfig.valuePlaceholder}
+                />
+              </label>
+              <label>
+                <span>Secondary value</span>
+                <input
+                  value={secondaryValue}
+                  onChange={(event) => setSecondaryValue(event.target.value)}
+                  placeholder="Optional extra value"
+                />
+              </label>
+              <label className="toggle-row">
+                <input
+                  checked={allowElevation}
+                  onChange={(event) => setAllowElevation(event.target.checked)}
+                  type="checkbox"
+                />
+                <span>Allow elevated actions</span>
+              </label>
+            </div>
+
+            {activeTool ? <ToolMeta tool={activeTool} /> : null}
 
             {activeToolId === launcherToolId ? (
               <LauncherModule
@@ -399,30 +521,33 @@ export default function App() {
                 selectedLauncher={selectedLauncher}
                 inspectedTarget={inspectedTarget}
                 iconResolution={iconResolution}
+                issues={issues}
+                actions={activeTool?.primaryActions ?? []}
                 onChange={updateDraft}
                 onSave={() => void saveLauncher()}
                 onDelete={() => void deleteSelected()}
                 onLaunch={() => void launchSelected()}
                 onResolveIcon={() => void resolveIcon()}
                 onRepair={() => void repairSelected()}
-                issues={issues}
+                onPrimaryAction={(actionDescriptor) => {
+                  if (!activeTool) {
+                    return;
+                  }
+                  void runPrimaryAction(activeTool, actionDescriptor);
+                }}
               />
             ) : (
-              <ToolResultPanel
+              <ActionWorkspace
+                tool={activeTool}
+                selectedLauncher={selectedLauncher}
+                onAction={(actionDescriptor) => {
+                  if (!activeTool) {
+                    return;
+                  }
+                  void runPrimaryAction(activeTool, actionDescriptor);
+                }}
                 result={toolResult}
                 guidedCommands={guidedCommands}
-                onScan={() => void scanTool()}
-                onPermissionAction={
-                  activeToolId === permissionsToolId
-                    ? () =>
-                        void api
-                          .applyToolAction(permissionsToolId, {
-                            path: targetInput || null,
-                            action: "make_executable",
-                          })
-                          .then(setToolResult)
-                    : undefined
-                }
               />
             )}
           </section>
@@ -430,9 +555,24 @@ export default function App() {
           <aside className="inspector">
             <div className="inspector-section">
               <h2>Tool status</h2>
-              <div className="message message-ok">{activeTool?.riskLevel.replace("_", " ") ?? "loading"}</div>
-              {activeTool?.capabilities.map((capability) => (
-                <div className="capability-pill" key={capability}>{capability}</div>
+              {activeTool ? (
+                <>
+                  <div className="message message-ok">
+                    {activeTool.privilegeLevel.replaceAll("_", " ")} · {activeTool.elevationMode}
+                  </div>
+                  <p className="empty-state">
+                    Targets: {activeTool.desktopTargets.join(", ")} · {activeTool.reversible ? "reversible" : "read-only"}
+                  </p>
+                </>
+              ) : null}
+            </div>
+
+            <div className="inspector-section">
+              <h2>Primary actions</h2>
+              {activeTool?.primaryActions.map((actionDescriptor) => (
+                <div className="capability-pill" key={actionDescriptor.id}>
+                  {actionDescriptor.label}
+                </div>
               ))}
             </div>
 
@@ -460,17 +600,21 @@ export default function App() {
             <div className="inspector-section">
               <h2>Validation</h2>
               {validation?.errors.map((error) => (
-                <div className="message message-error" key={error}>{error}</div>
+                <div className="message message-error" key={error}>
+                  {error}
+                </div>
               ))}
               {validation?.warnings.map((warning) => (
-                <div className="message message-warning" key={warning}>{warning}</div>
+                <div className="message message-warning" key={warning}>
+                  {warning}
+                </div>
               ))}
               {validation?.valid ? <div className="message message-ok">Launcher ready to save</div> : null}
             </div>
 
             <div className="inspector-section preview-section">
               <h2>Desktop preview</h2>
-              <pre>{validation?.preview || "Open Launcher Manager to preview generated launcher content."}</pre>
+              <pre>{validation?.preview || "Open Launcher Repair & Integrator to preview desktop entries."}</pre>
             </div>
           </aside>
         </div>
@@ -484,7 +628,7 @@ function ToolMeta({ tool }: { tool: ToolDefinition }) {
     <div className="notice suite-notice">
       <BadgeCheck size={16} />
       <span>
-        {categoryLabels[tool.category]} · {tool.riskLevel.replace("_", " ")} · {tool.supportedDistros.join(", ")}
+        {categoryLabels[tool.category]} · {tool.supportedDistros.join(", ")} · {tool.primaryActions.length} action(s)
       </span>
     </div>
   );
@@ -496,30 +640,34 @@ function LauncherModule({
   inspectedTarget,
   iconResolution,
   issues,
+  actions,
   onChange,
   onSave,
   onDelete,
   onLaunch,
   onResolveIcon,
   onRepair,
+  onPrimaryAction,
 }: {
   draft: LauncherInput;
   selectedLauncher: Launcher | null;
   inspectedTarget: InspectTargetResult | null;
   iconResolution: IconResolution | null;
   issues: LauncherIssue[];
+  actions: ToolActionDescriptor[];
   onChange: (patch: Partial<LauncherInput>) => void;
   onSave: () => void;
   onDelete: () => void;
   onLaunch: () => void;
   onResolveIcon: () => void;
   onRepair: () => void;
+  onPrimaryAction: (actionDescriptor: ToolActionDescriptor) => void;
 }) {
   return (
     <>
       {inspectedTarget ? (
         <div className="notice">
-          <BadgeCheck size={16} />
+          <Sparkles size={16} />
           <span>
             Suggested {inspectedTarget.kind.replace("_", " ")} launcher:{" "}
             <strong>{inspectedTarget.suggestedName}</strong>
@@ -539,18 +687,33 @@ function LauncherModule({
           <Image size={22} />
           <div>
             <h2>Icon resolution</h2>
-            <p>{iconResolution ? iconResolution.resolvedPath ?? iconResolution.themeName ?? "unresolved" : "Resolve the icon field when needed."}</p>
+            <p>
+              {iconResolution
+                ? iconResolution.resolvedPath ?? iconResolution.themeName ?? "unresolved"
+                : "Resolve the icon field when needed."}
+            </p>
           </div>
-          <Button variant="secondary" onClick={onResolveIcon}>Resolve</Button>
+          <Button variant="secondary" onClick={onResolveIcon}>
+            Resolve
+          </Button>
         </div>
         <div className="terminal-card">
           <Stethoscope size={22} />
           <div>
-            <h2>Launcher Doctor</h2>
+            <h2>Launcher doctor</h2>
             <p>{issues.length === 0 ? "No launcher issues found." : `${issues.length} issue(s) found.`}</p>
           </div>
-          <Button variant="secondary" onClick={onRepair}>Repair selected</Button>
+          <Button variant="secondary" onClick={onRepair}>
+            Repair selected
+          </Button>
         </div>
+      </div>
+      <div className="action-strip">
+        {actions.map((actionDescriptor) => (
+          <Button key={actionDescriptor.id} variant="secondary" onClick={() => onPrimaryAction(actionDescriptor)}>
+            {actionDescriptor.label}
+          </Button>
+        ))}
       </div>
     </>
   );
@@ -579,10 +742,7 @@ function LauncherForm({
       </label>
       <label>
         <span>Kind</span>
-        <select
-          value={draft.kind}
-          onChange={(event) => onChange({ kind: event.target.value as LauncherKind })}
-        >
+        <select value={draft.kind} onChange={(event) => onChange({ kind: event.target.value as LauncherKind })}>
           <option value="application">Application</option>
           <option value="app_image">AppImage</option>
           <option value="script">Script</option>
@@ -602,10 +762,7 @@ function LauncherForm({
       </label>
       <label className="span-two">
         <span>Description</span>
-        <input
-          value={draft.description}
-          onChange={(event) => onChange({ description: event.target.value })}
-        />
+        <input value={draft.description} onChange={(event) => onChange({ description: event.target.value })} />
       </label>
       <label>
         <span>Icon</span>
@@ -618,18 +775,14 @@ function LauncherForm({
           onChange={(event) => onChange({ categories: normalizeCategoryInput(event.target.value) })}
         />
       </label>
-      <label className="toggle-row">
-        <input
-          type="checkbox"
-          checked={draft.terminal}
-          onChange={(event) => onChange({ terminal: event.target.checked })}
-        />
-        <span>Run in terminal</span>
+      <label className="toggle-row span-two">
+        <input checked={draft.terminal} onChange={(event) => onChange({ terminal: event.target.checked })} type="checkbox" />
+        <span>Launch in terminal</span>
       </label>
       <div className="action-row span-two">
         <Button onClick={onSave}>
           <Save size={16} />
-          {selectedLauncher ? "Save changes" : "Create launcher"}
+          {selectedLauncher ? "Update launcher" : "Create launcher"}
         </Button>
         <Button variant="secondary" onClick={onLaunch}>
           <Play size={16} />
@@ -644,74 +797,107 @@ function LauncherForm({
   );
 }
 
-function ToolResultPanel({
+function ActionWorkspace({
+  tool,
+  selectedLauncher,
+  onAction,
   result,
   guidedCommands,
-  onScan,
-  onPermissionAction,
 }: {
+  tool: ToolDefinition | null;
+  selectedLauncher: Launcher | null;
+  onAction: (actionDescriptor: ToolActionDescriptor) => void;
   result: ToolResult | null;
   guidedCommands: GuidedCommand[];
-  onScan: () => void;
-  onPermissionAction?: () => void;
 }) {
+  if (!tool) {
+    return null;
+  }
+
   return (
     <div className="tool-result-panel">
-      <div className="action-row">
-        <Button onClick={onScan}>
-          <Search size={16} />
-          Run scan
-        </Button>
-        {onPermissionAction ? (
-          <Button variant="secondary" onClick={onPermissionAction}>
-            <KeyRound size={16} />
-            Mark executable
-          </Button>
-        ) : null}
+      <div className="notice">
+        <FolderCog size={16} />
+        <span>
+          {selectedLauncher ? `Selected launcher context: ${selectedLauncher.name}` : "Actions can run with or without a selected launcher context."}
+        </span>
       </div>
-      {result ? (
-        <>
-          <div className="terminal-card">
-            <Terminal size={22} />
-            <div>
-              <h2>{result.summary}</h2>
-              <p>{result.warnings.length === 0 ? "Scan completed without warnings." : `${result.warnings.length} warning(s)`}</p>
-            </div>
-          </div>
-          <ResultMessages result={result} />
-          <pre className="data-preview">{JSON.stringify(result.data, null, 2)}</pre>
-        </>
-      ) : (
-        <div className="empty-tool-state">
-          <Terminal size={34} />
-          <h2>Run a scan to load this tool.</h2>
-          <p>Tools are read-first by default. Admin-level changes appear as guided commands, not automatic writes.</p>
-        </div>
-      )}
-      <GuidedCommands commands={guidedCommands} />
+      <div className="action-strip">
+        {tool.primaryActions.map((actionDescriptor) => (
+          <Button key={actionDescriptor.id} variant="secondary" onClick={() => onAction(actionDescriptor)}>
+            {actionDescriptor.label}
+          </Button>
+        ))}
+      </div>
+      <ToolResultPanel result={result} guidedCommands={guidedCommands} />
     </div>
   );
 }
 
-function ResultMessages({ result }: { result: ToolResult }) {
+function ToolResultPanel({
+  result,
+  guidedCommands,
+}: {
+  result: ToolResult | null;
+  guidedCommands: GuidedCommand[];
+}) {
+  if (!result) {
+    return (
+      <div className="empty-tool-state">
+        <h2>Action-first workflow</h2>
+        <p>Scan the current tool or run one of its actions to see blocking issues, performed steps, and refresh requirements.</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="result-messages">
-      {result.warnings.map((warning) => (
-        <div className="message message-warning" key={warning}>{warning}</div>
-      ))}
-      {result.repairSuggestions.map((suggestion) => (
-        <div className="message message-ok" key={suggestion}>{suggestion}</div>
+    <>
+      <ResultMessages label="Warnings" tone="warning" messages={result.warnings} />
+      <ResultMessages label="Blocking issues" tone="error" messages={result.blockingIssues} />
+      <ResultMessages label="Performed" tone="ok" messages={result.performedActions} />
+      <ResultMessages label="Refresh needed" tone="warning" messages={result.restartOrRefreshNeeded} />
+      {result.beforeAfterState ? (
+        <div>
+          <h2 className="compact-heading">Before / after</h2>
+          <pre className="data-preview">{JSON.stringify(result.beforeAfterState, null, 2)}</pre>
+        </div>
+      ) : null}
+      <div>
+        <h2 className="compact-heading">Result data</h2>
+        <pre className="data-preview">{JSON.stringify(result.data, null, 2)}</pre>
+      </div>
+      {guidedCommands.length > 0 ? <GuidedCommands commands={guidedCommands} /> : null}
+    </>
+  );
+}
+
+function ResultMessages({
+  label,
+  tone,
+  messages,
+}: {
+  label: string;
+  tone: "error" | "warning" | "ok";
+  messages: string[];
+}) {
+  if (messages.length === 0) {
+    return null;
+  }
+  return (
+    <div>
+      <h2 className="compact-heading">{label}</h2>
+      {messages.map((message) => (
+        <div className={`message message-${tone}`} key={message}>
+          {message}
+        </div>
       ))}
     </div>
   );
 }
 
 function GuidedCommands({ commands }: { commands: GuidedCommand[] }) {
-  if (commands.length === 0) {
-    return null;
-  }
   return (
-    <section className="guided-commands">
+    <div className="guided-commands">
       <h2>Guided commands</h2>
       {commands.map((command) => (
         <div className="guided-command" key={`${command.label}-${command.command}`}>
@@ -719,9 +905,10 @@ function GuidedCommands({ commands }: { commands: GuidedCommand[] }) {
             <strong>{command.label}</strong>
             <span>{command.explanation}</span>
           </div>
+          <div className="message message-warning">{command.privilegeLevel.replaceAll("_", " ")}</div>
           <code>{command.command}</code>
         </div>
       ))}
-    </section>
+    </div>
   );
 }

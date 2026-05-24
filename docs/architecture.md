@@ -1,6 +1,6 @@
 # DeskCrafter Architecture
 
-DeskCrafter is organized as a native desktop product with a web-powered interface and a Rust backend. The app is tool-registry based: each Linux tool exposes a stable definition, scan behavior, validation behavior, and optional user-owned action handling.
+DeskCrafter is organized as a native desktop product with a web-powered interface and a Rust backend. The app is tool-registry based: each Linux tool exposes a stable definition, scan behavior, validation behavior, and explicit action handling for repair, install, update, remove, or elevated system actions.
 
 ## Repository Layout
 
@@ -16,12 +16,12 @@ React renders the interface and calls Tauri commands. Rust owns all filesystem, 
 
 ## Suite Model
 
-- `ToolDefinition`: stable id, label, category, description, risk level, capabilities, and supported distros.
-- `ToolResult<T>`: scan or action output with data, warnings, suggestions, and guided commands.
+- `ToolDefinition`: stable id, label, category, privilege level, elevation mode, reversibility, desktop targets, and primary actions.
+- `ToolResult<T>`: scan or action output with data, warnings, blocking issues, performed actions, before/after state, refresh requirements, and guided commands.
 - `ToolStatus`: current availability and warnings for a tool.
 - `GuidedCommand`: copyable command text with explanation and risk label for actions DeskCrafter will not perform directly.
 
-Core tool modules live behind a shared Rust trait with `scan`, `validate`, and `apply_user_action` behavior. Tauri calls tools by stable IDs instead of hardcoding every module into the UI.
+Core tool modules live behind a shared Rust trait with `scan`, `validate_action`, and `apply_action` behavior. Tauri calls tools by stable IDs instead of hardcoding every module into the UI.
 
 ## Default Storage
 
@@ -35,14 +35,15 @@ Core tool modules live behind a shared Rust trait with `scan`, `validate`, and `
 1. The UI lists tools through `list_tools()`.
 2. The user selects a tool and the UI calls `run_tool_scan(tool_id, input)`.
 3. The Tauri command validates the envelope and delegates to `crates/core::tools::ToolRegistry`.
-4. Core performs read-first inspection and returns structured warnings, suggestions, and guided commands.
+4. Core performs action-oriented inspection and returns structured warnings, blocking issues, and guided commands.
 5. User-owned changes go through `validate_tool_action()` and `apply_tool_action()`.
-6. System-level changes are returned as guided commands rather than executed.
+6. Elevated system changes run through an explicit polkit-backed shell flow where supported.
+7. Post-mutation refresh steps rebuild menu, MIME, service, or Flatpak state as needed.
 
 ## Privilege Policy
 
-- No root writes in the default app flow.
-- No destructive cleanup in the first backend pass.
-- User-owned writes are allowed only when the action is clear and reversible, such as launcher updates, autostart updates, or marking a user-owned file executable.
-- Admin-owned service, package, and permission operations are represented as guided commands with risk labels.
+- User-owned writes are the default path whenever they are sufficient to solve the problem.
+- Elevated writes are allowed when they materially improve integration workflows such as global launcher install, system MIME defaults, system Flatpak overrides, or ownership repair.
+- Elevated actions must be explicit, user-visible, and scoped to a concrete operation.
+- Generic cleanup and destructive housekeeping remain out of scope for the core product.
 - Missing subsystems such as systemd, Flatpak, or package-manager detection produce warnings instead of command failures.

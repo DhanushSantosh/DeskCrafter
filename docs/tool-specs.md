@@ -1,51 +1,67 @@
 # DeskCrafter Tool Specs
 
-Every tool is exposed through the suite registry and returns `ToolResult`. Tools should scan safely even when the underlying subsystem is missing.
+Every tool is exposed through the suite registry and returns `ToolResult`. Tools are action-first: scans provide context for repair, install, update, removal, or elevated actions.
 
-## Launcher Manager
+## Launcher Repair & Integrator
 
-Risk level: `user_write`
+Privilege level: `user_write`
 
-Required launcher fields are name and executable target. Optional fields are description, icon, categories, terminal flag, and URL. The module previews generated `.desktop` content before save, scans user launchers for issues, and keeps AppImage, script, URL, icon, category, and launcher doctor workflows under one tool.
+Primary actions: refresh menu caches, repair a selected launcher, remove a selected launcher, install a selected launcher globally with elevation.
 
-## Autostart Manager
+The tool owns launcher creation and editing through the dedicated launcher workflow, and it also handles post-write cache refresh so new or repaired entries appear in desktop menus.
 
-Risk level: `user_write`
+## Portable App Integrator
 
-Scans `${XDG_CONFIG_HOME:-~/.config}/autostart` and `/etc/xdg/autostart` for `.desktop` entries. User autostart writes should use the same validation and backup behavior as launcher writes. System autostart entries are read-only and may expose guided commands for inspection.
+Privilege level: `user_write`
 
-## AppImage Manager
+Primary actions: integrate a path, re-link a portable target, remove an integration.
 
-Risk level: `read_only`
+This tool accepts AppImages, scripts, and standalone binaries. It can move them into a managed location, mark them executable, generate a launcher, and refresh the desktop integration state.
 
-Finds `.AppImage` files in common user folders such as `~/Applications`, `~/Downloads`, and `~/Desktop`. It reports executable-bit state, missing folders as warnings, and integration hints that route launcher creation through Launcher Manager.
+## Autostart Actions
 
-## Environment & PATH Viewer
+Privilege level: `user_write`
 
-Risk level: `read_only`
+Primary actions: enable a selected launcher at login, disable an autostart entry, repair an autostart entry, duplicate an autostart entry.
 
-Reads the current PATH, reports duplicate entries, missing directories, common user bin folders, and detected shell profile files. This tool does not edit shell profiles in v1.
+It works on `${XDG_CONFIG_HOME:-~/.config}/autostart` directly and treats system autostart entries under `/etc/xdg/autostart` as informational unless a future elevated flow is added.
 
-## Service Viewer
+## Default Apps & MIME Manager
 
-Risk level: `guided_admin`
+Privilege level: `elevated_write`
 
-Reads systemd availability and lists user/system service unit files where available. It does not start, stop, enable, or disable services directly. Privileged service actions are shown as guided commands.
+Primary actions: set a MIME default, set the default browser, set a system MIME default with elevation.
 
-## Disk & Cache Inspector
+This tool uses XDG MIME behavior as the primary model. It should support file associations, URL schemes, and `mimeapps.list`-backed repair workflows.
 
-Risk level: `read_only`
+## Flatpak Permissions Manager
 
-Reads sizes for safe user-owned cache targets such as `~/.cache`, `~/.npm`, and Cargo caches. It does not delete files in the first backend pass. Cleanup appears only as suggestions or future guided flows.
+Privilege level: `elevated_write`
 
-## Permissions Helper
+Primary actions: grant home access, grant a targeted filesystem path, reset overrides, grant a system-scope path with elevation.
 
-Risk level: `user_write`
+This tool is focused on effective overrides and restart-needed messaging rather than acting as a general Flatpak store.
 
-Inspects a selected path for existence, ownership, file type, and executable-bit state. It may mark a user-owned file executable. Admin-owned paths and unsupported permission changes return guided commands or stable errors.
+## Permission & Ownership Repair
+
+Privilege level: `elevated_write`
+
+Primary actions: make a file executable, repair an XDG directory, fix ownership with elevation.
+
+It is specifically for integration-critical paths such as user launcher directories, managed portable apps, and autostart locations.
+
+## Service Actions
+
+Privilege level: `system_repair`
+
+Primary actions: start or enable user services directly, start or enable system services with elevation.
+
+This tool is advanced/supporting. It exists to unblock desktop integrations that depend on background services rather than to become a full service manager.
 
 ## System Profile
 
-Risk level: `read_only`
+Privilege level: `read_only`
 
-Reports distro, desktop session, XDG data/config/cache paths, package-manager hints, systemd availability, Flatpak availability, and AppImage support. Missing detections should be represented as `null` values or warnings, not hard failures.
+Primary actions: refresh the current system profile.
+
+This is a support module for distro, session, XDG, Flatpak, AppImage, and systemd capability detection. It informs other tools and should not be the main destination workflow.
