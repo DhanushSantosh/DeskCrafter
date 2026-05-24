@@ -1,22 +1,41 @@
 # Frontend Theme & Design System
 
-DeskCrafter uses a modified, high-end developer styling system inspired by workstation utility aesthetics (gunmetal surfaces, cherry accents, pitch-black backings).
+DeskCrafter utilizes a highly interactive, cinematic, and premium developer aesthetic. It is inspired by Awwwards-winning scrollytelling sites (e.g., landonorris.com, Vercel, Apple) fused with raw Linux workstation terminal aesthetics.
 
 ## Visual Thesis
 
-A dark Linux workstation utility style that balances technical density with modern marketing layouts. High-contrast typography, restrained radial highlights, sharp structural containers, and glassmorphism.
+A dark, visceral Linux utility that balances extreme technical density with cutting-edge, high-end web design. We prioritize smooth fluid interactions, physics-based UI mechanics, true black contrasts, and narrative-driven scrollytelling over generic static landing page structures.
 
-## Reused & Redesigned Ideas
+## Core Design Mechanics (MUST FOLLOW)
 
-- **Pitch-Black Background:** Pure pitch-black (`#000000`) base page colors instead of almost-black greys to maximize contrast and border crispness.
-- **Gunmetal Surfaces:** Translucent elevated elements (`rgba(14, 15, 17, 0.6)`) with high-blur glassmorphic backing.
-- **Cherry Red Accents:** Cherry red (`#ff0f39`) used exclusively for active navigation states, interactive success highlights, and focused border glows.
-- **Floating Pill Navigation:** Center-floating navigation pill positioned at `top: 36px` that transitions background contrast and shadow depth on scroll without layout scale shifting.
-- **Two-Column Hero:** Balance product copy (left) and interactive layout studio mockups (right) in a unified grid structure.
-- **Interactive Demos:** Focus on client-side React interactive simulators (XDG code compilation studio and Diagnostics console scanner) rather than heavy static image screenshots.
+- **Pure Pitch-Black Base:** Use true black (`#000000`) for all primary backgrounds to maximize the impact of glowing borders and text contrast.
+- **Cinematic Overlays & Noise:** 
+  - Utilize a subtle, static `mix-blend-mode: overlay` noise filter to add a premium film-grain texture.
+  - Implement Boot Sequence sequences to mask page loads and transition via iris/shutter animations.
+- **Physics-Based UI (Magnetic Cursor):** 
+  - The default browser cursor MUST be hidden (`cursor: none`).
+  - Use a custom Framer Motion cursor (a leading dot and lagging spring-based ring).
+  - Wrap interactive elements in `<Magnetic>` boundaries so that buttons and navigation links pull toward the mouse, inverting cursor colors via `mix-blend-mode: difference`.
+- **Scrollytelling Layouts:** 
+  - Use sticky-pinned "stages" for visuals (like the `StickyFeatureScroll` terminal window) while the descriptive text flows down the left side. The scrollbar acts as a timeline slider controlling the right-side stage.
+- **Cherry Red OLED Accents:** 
+  - Use vibrant cherry red (`#ff0d3e`) heavily, but strategically, for terminal outputs, animated active states, and glowing node connectors.
+  - Pair with a bright Emerald Green (`#10b981`) only for "SAFE" or success states in telemetry dashboards.
+- **Immersive Technical HUDs:**
+  - Embellish empty corners with `hud-corner` bracket borders.
+  - Rely on monospace fonts (`JetBrains Mono`) for any logs, diagnostics, metrics, or terminal inputs. 
 
-## Avoided Ideas
+## Reused & Redesigned Components
 
-- **Placeholder Graphics:** Avoid decorative panels, mock UI screenshots, or abstract graphics that do not support the real utility workflow.
-- **Low Contrast Greys:** No low-contrast backgrounds that make elements look bland or muddy.
-- **Abrupt Nav Shrinking:** Freezing navbar dimensions on scroll to prevent tiny fonts or logo distortion.
+- **Floating Pill Navigation:** Center-floating navigation pill positioned at `top: 36px` that smoothly morphs its blur and shadow depth upon scroll.
+- **Interactive Canvases:** The hero features an infinite cyber-grid perspective on a `<canvas>` that reacts to mouse coordinates and draws connection tethers.
+- **Architecture Pipelines:** Replace static architecture diagrams with interactive XDG pipeline visualizers built with Framer Motion that sequentially reveal paths.
+- **Bento Telemetry Dashboards:** Instead of static grids, use "Diagnostic Dashboards" where cards represent system checks that can be clicked to mock a "SCAN -> FIX -> SAFE" terminal lifecycle.
+
+## Avoided Ideas (STRICTLY PROHIBITED)
+
+- **Generic SaaS Structures:** No standard two-column "Text on Left, Image on Right" static hero sections. 
+- **Standard Tooltips & Hover Effects:** Avoid boring color transitions on hover. Use the Magnetic UI or inverted custom cursor rings instead.
+- **Tailwind CSS Utility Classes:** DeskCrafter strictly uses Custom CSS Variables in `globals.css` to govern layout and aesthetics. Do not introduce Tailwind classes. 
+- **Low Contrast Greys:** No muddy grey backgrounds. Stick to OLED `#000000` or `#050505` for surfaces.
+- **Placeholder Graphics:** Do not use abstract graphics. If an illustration is needed, build a mock telemetry or terminal UI.
