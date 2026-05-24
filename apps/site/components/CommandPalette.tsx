@@ -19,8 +19,15 @@ export function CommandPalette() {
         setIsOpen(false);
       }
     };
+    const handleOpenEvent = () => setIsOpen(true);
+    
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('open-command-palette', handleOpenEvent);
+    
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('open-command-palette', handleOpenEvent);
+    };
   }, []);
 
   const runCommand = (action: string) => {
@@ -40,9 +47,9 @@ export function CommandPalette() {
             onClick={() => setIsOpen(false)}
           />
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: -20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: -20 }}
+            initial={{ opacity: 0, scale: 0.95, y: -20, x: "-50%" }}
+            animate={{ opacity: 1, scale: 1, y: 0, x: "-50%" }}
+            exit={{ opacity: 0, scale: 0.95, y: -20, x: "-50%" }}
             className="command-palette"
           >
             <div className="command-input-wrapper">

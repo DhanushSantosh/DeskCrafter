@@ -7,6 +7,13 @@ export function BootSequence({ onComplete }: { onComplete: () => void }) {
   const [lines, setLines] = useState<string[]>([]);
   const [isBooting, setIsBooting] = useState(true);
   const [progress, setProgress] = useState(0);
+  const bootWordmark = String.raw`
+ ____  _____ ____  _  __  ____ ____      _    _____ _____ _____ ____  
+|  _ \| ____/ ___|| |/ / / ___|  _ \    / \  |  ___|_   _| ____|  _ \ 
+| | | |  _| \___ \| ' / | |   | |_) |  / _ \ | |_    | | |  _| | |_) |
+| |_| | |___ ___) | . \ | |___|  _ <  / ___ \|  _|   | | | |___|  _ < 
+|____/|_____|____/|_|\_\ \____|_| \_\/_/   \_\_|     |_| |_____|_| \_\
+`;
 
   const bootLogs = [
     "deskcrafter-os v0.1.0-alpha core boot...",
@@ -66,14 +73,9 @@ export function BootSequence({ onComplete }: { onComplete: () => void }) {
         >
           <div className="boot-terminal">
             <div className="boot-ascii">
-              <pre>{`
-  ____            _    ____            __ _            
- |  _ \\ ___  ___| | _|  _ \\ _ __ __ _/ _| |_ ___ _ __ 
- | | | / _ \\/ __| |/ / |_) | '__/ _\` | |_| __/ _ \\ '__|
- | |_| \\__ \\\\__ \\   <|  __/| | | (_| |  _| ||  __/ |   
- |____/|___/|___/_|\\_\\_|   |_|  \\__,_|_|  \\__\\___|_|   
-                                                       
-              `}</pre>
+              <pre className="boot-wordmark" aria-label="DESKCRAFTER">
+                {bootWordmark}
+              </pre>
             </div>
             
             <div className="boot-logs">

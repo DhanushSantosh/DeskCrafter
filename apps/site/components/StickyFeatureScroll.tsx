@@ -2,7 +2,7 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { AppWindow, Activity, Package, Route } from 'lucide-react';
+import { AppWindow, Activity, Package, Route, LucideIcon } from 'lucide-react';
 
 const scrollFeatures = [
   {
@@ -51,6 +51,66 @@ const scrollFeatures = [
   }
 ];
 
+interface FeatureType {
+  id: string;
+  title: string;
+  desc: string;
+  icon: LucideIcon;
+  terminal: {
+    in: string;
+    category: string;
+    boundary: string;
+  };
+}
+
+function TerminalSnippet({ feature, animate }: { feature: FeatureType, animate?: boolean }) {
+  return (
+    <div className="sticky-visual-inner">
+      <div className="hud-corner top-left" />
+      <div className="hud-corner top-right" />
+      <div className="hud-corner bottom-left" />
+      <div className="hud-corner bottom-right" />
+      
+      <div className="simulator-header">
+        <div className="window-controls">
+          <span className="window-dot red" />
+          <span className="window-dot yellow" />
+          <span className="window-dot green" />
+        </div>
+        <div className="window-title">root@deskcrafter ~ live-inspect</div>
+      </div>
+      
+      <div className="sticky-terminal">
+        <motion.div
+          key={feature.id}
+          initial={animate ? { opacity: 0, x: -10 } : false}
+          animate={animate ? { opacity: 1, x: 0 } : false}
+          transition={{ duration: 0.3 }}
+        >
+          <div><span className="line-in">{feature.terminal.in}</span></div>
+          <motion.div initial={animate ? { opacity: 0 } : false} animate={animate ? { opacity: 1 } : false} transition={{ delay: 0.2 }}>
+            <span className="line-out">[CATEGORY]</span> {feature.terminal.category}
+          </motion.div>
+          <motion.div initial={animate ? { opacity: 0 } : false} animate={animate ? { opacity: 1 } : false} transition={{ delay: 0.4 }}>
+            <span className="line-out">[BOUNDARY]</span> {feature.terminal.boundary}
+          </motion.div>
+          <motion.div initial={animate ? { opacity: 0 } : false} animate={animate ? { opacity: 1 } : false} transition={{ delay: 0.6 }}>
+            <span className="line-out">[STATUS]</span> Ready to execute.
+          </motion.div>
+          
+          <motion.div 
+            className="terminal-cursor-blink"
+            animate={{ opacity: [1, 0, 1] }}
+            transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+          >
+            █
+          </motion.div>
+        </motion.div>
+      </div>
+    </div>
+  );
+}
+
 export function StickyFeatureScroll() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -91,55 +151,17 @@ export function StickyFeatureScroll() {
               </div>
               <h3 className="cyber-h3">{feature.title}</h3>
               <p>{feature.desc}</p>
+              
+              <div className="mobile-only-terminal">
+                <TerminalSnippet feature={feature} animate={false} />
+              </div>
             </div>
           );
         })}
       </div>
 
-      <div className="sticky-scroll-visual" data-cursor="OBSERVE">
-        <div className="sticky-visual-inner">
-          <div className="hud-corner top-left" />
-          <div className="hud-corner top-right" />
-          <div className="hud-corner bottom-left" />
-          <div className="hud-corner bottom-right" />
-          
-          <div className="simulator-header">
-            <div className="window-controls">
-              <span className="window-dot red" />
-              <span className="window-dot yellow" />
-              <span className="window-dot green" />
-            </div>
-            <div className="window-title">root@deskcrafter ~ live-inspect</div>
-          </div>
-          
-          <div className="sticky-terminal">
-            <motion.div
-              key={activeFeature.id}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div><span className="line-in">{activeFeature.terminal.in}</span></div>
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
-                <span className="line-out">[CATEGORY]</span> {activeFeature.terminal.category}
-              </motion.div>
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}>
-                <span className="line-out">[BOUNDARY]</span> {activeFeature.terminal.boundary}
-              </motion.div>
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}>
-                <span className="line-out">[STATUS]</span> Ready to execute.
-              </motion.div>
-              
-              <motion.div 
-                className="terminal-cursor-blink"
-                animate={{ opacity: [1, 0, 1] }}
-                transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-              >
-                █
-              </motion.div>
-            </motion.div>
-          </div>
-        </div>
+      <div className="sticky-scroll-visual desktop-only" data-cursor="OBSERVE">
+        <TerminalSnippet feature={activeFeature} animate={true} />
       </div>
     </div>
   );
