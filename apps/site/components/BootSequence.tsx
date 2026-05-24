@@ -3,11 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export function BootSequence({ onComplete }: { onComplete: () => void }) {
-  const [lines, setLines] = useState<string[]>([]);
-  const [isBooting, setIsBooting] = useState(true);
-  const [progress, setProgress] = useState(0);
-  const bootWordmark = String.raw`
+const BOOT_WORDMARK = String.raw`
  ____  _____ ____  _  __  ____ ____      _    _____ _____ _____ ____  
 |  _ \| ____/ ___|| |/ / / ___|  _ \    / \  |  ___|_   _| ____|  _ \ 
 | | | |  _| \___ \| ' / | |   | |_) |  / _ \ | |_    | | |  _| | |_) |
@@ -15,25 +11,30 @@ export function BootSequence({ onComplete }: { onComplete: () => void }) {
 |____/|_____|____/|_|\_\ \____|_| \_\/_/   \_\_|     |_| |_____|_| \_\
 `;
 
-  const bootLogs = [
-    "deskcrafter-os v0.1.0-alpha core boot...",
-    "Initializing hardware abstractions...",
-    "[ OK ] Mounted XDG virtual filesystem.",
-    "Loading kernel modules...",
-    "[ OK ] Detected 12 CPU cores. Allocating resources.",
-    "Verifying desktop entry specifications...",
-    "[ OK ] flatpak-run sandboxing module loaded.",
-    "Bypassing generic SaaS UI vectors...",
-    "Injecting Awwwards-grade CSS engine...",
-    "[ OK ] Cybernetic visual system active.",
-  ];
+const BOOT_LOGS = [
+  "deskcrafter-os v0.1.0-alpha core boot...",
+  "Initializing hardware abstractions...",
+  "[ OK ] Mounted XDG virtual filesystem.",
+  "Loading kernel modules...",
+  "[ OK ] Detected 12 CPU cores. Allocating resources.",
+  "Verifying desktop entry specifications...",
+  "[ OK ] flatpak-run sandboxing module loaded.",
+  "Bypassing generic SaaS UI vectors...",
+  "Injecting Awwwards-grade CSS engine...",
+  "[ OK ] Cybernetic visual system active.",
+];
+
+export function BootSequence({ onComplete }: { onComplete: () => void }) {
+  const [lines, setLines] = useState<string[]>([]);
+  const [isBooting, setIsBooting] = useState(true);
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     let currentLine = 0;
     
     const interval = setInterval(() => {
-      if (currentLine < bootLogs.length) {
-        setLines(prev => [...prev, bootLogs[currentLine]]);
+      if (currentLine < BOOT_LOGS.length) {
+        setLines(prev => [...prev, BOOT_LOGS[currentLine]]);
         currentLine++;
       }
     }, 150);
@@ -58,7 +59,7 @@ export function BootSequence({ onComplete }: { onComplete: () => void }) {
       clearInterval(progressInterval);
       clearTimeout(finishTimeout);
     };
-  }, [onComplete]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [onComplete]);
 
   return (
     <AnimatePresence>
@@ -74,7 +75,7 @@ export function BootSequence({ onComplete }: { onComplete: () => void }) {
           <div className="boot-terminal">
             <div className="boot-ascii">
               <pre className="boot-wordmark" aria-label="DESKCRAFTER">
-                {bootWordmark}
+                {BOOT_WORDMARK}
               </pre>
             </div>
             
