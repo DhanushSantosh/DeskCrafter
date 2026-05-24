@@ -22,10 +22,10 @@ import { SpotlightCard } from "../components/SpotlightCard";
 import { bentoFeatures, primaryFeatures, principles, toolDefinitions } from "../lib/site-content";
 
 export default function HomePage() {
-  const [selectedToolId, setSelectedToolId] = useState("launcher_manager");
+  const [selectedToolId, setSelectedToolId] = useState("launcher_repair_integrator");
   const [targetPath, setTargetPath] = useState("~/.local/share/applications");
-  const [scanScope, setScanScope] = useState("User-owned paths");
-  const [safetyMode, setSafetyMode] = useState("Read first");
+  const [scanScope, setScanScope] = useState("Desktop integration paths");
+  const [safetyMode, setSafetyMode] = useState("Validate then apply");
   const [simTab, setSimTab] = useState<"code" | "mock">("code");
   const [compileState, setCompileState] = useState<"idle" | "compiling" | "success">("idle");
   const [compileLog, setCompileLog] = useState("");
@@ -33,8 +33,8 @@ export default function HomePage() {
   // Doctor States
   const [docState, setDocState] = useState<"idle" | "scanning" | "scanned" | "repairing" | "repaired">("idle");
   const [docLogs, setDocLogs] = useState<Array<{ type: "info" | "warn" | "err" | "ok" | "success" | "head"; text: string }>>([
-    { type: "head", text: "DeskCrafter Suite Scan v0.1.0" },
-    { type: "info", text: "Registry scanner ready. Press 'Run Suite Scan' to inspect Linux tool modules." }
+    { type: "head", text: "DeskCrafter Repair Console v0.1.0" },
+    { type: "info", text: "Action planner ready. Press 'Run Repair Scan' to inspect integration issues and available fixes." }
   ]);
 
   // Terminal Widget Reveal State
@@ -76,19 +76,19 @@ export default function HomePage() {
     if (compileState !== "idle") return;
 
     setCompileState("compiling");
-    setCompileLog("Loading tool registry contract...");
+    setCompileLog("Loading action contract for selected tool...");
 
     setTimeout(() => {
-      setCompileLog("Checking read/write boundary for selected module...");
+      setCompileLog("Validating required path, privilege level, and target action...");
     }, 400);
 
     setTimeout(() => {
-      setCompileLog("Preparing safe action plan for Linux desktop paths...");
+      setCompileLog("Preparing repair or integration plan with refresh steps...");
     }, 800);
 
     setTimeout(() => {
       setCompileState("success");
-      setCompileLog(`Ready: ${selectedToolId} plan prepared without automatic admin changes.`);
+      setCompileLog(`Ready: ${selectedToolId} action plan prepared with explicit elevation boundaries.`);
     }, 1200);
   };
 
@@ -101,23 +101,23 @@ export default function HomePage() {
   const runDiagnostics = () => {
     setDocState("scanning");
     setDocLogs([
-      { type: "head", text: "DeskCrafter Suite Scan v0.1.0" },
-      { type: "info", text: "Scanning launcher, autostart, PATH, service, cache, permissions, and profile modules..." }
+      { type: "head", text: "DeskCrafter Repair Console v0.1.0" },
+      { type: "info", text: "Scanning launcher, portable app, autostart, MIME, Flatpak, permission, service, and profile modules..." }
     ]);
 
     setTimeout(() => {
       setDocLogs(prev => [
         ...prev,
-        { type: "info", text: "Read 8 tool manifests and mapped user-owned XDG locations." },
-        { type: "warn", text: "PATH contains duplicate ~/.local/bin entry in two shell profiles." }
+        { type: "info", text: "Read 8 tool definitions and mapped desktop integration targets." },
+        { type: "warn", text: "mimeapps.list points text/html to a missing launcher entry." }
       ]);
     }, 300);
 
     setTimeout(() => {
       setDocLogs(prev => [
         ...prev,
-        { type: "err", text: "AppImage launcher target is missing: /opt/Cursor/cursor.AppImage" },
-        { type: "warn", text: "Cache inspector found 1.8 GB of reviewable user cache; cleanup not automatic." }
+        { type: "err", text: "Portable app target is missing: /opt/Cursor/cursor.AppImage" },
+        { type: "warn", text: "Flatpak org.mozilla.firefox is missing a filesystem override required for downloads." }
       ]);
     }, 650);
 
@@ -125,7 +125,7 @@ export default function HomePage() {
       setDocState("scanned");
       setDocLogs(prev => [
         ...prev,
-        { type: "head", text: "Suite Scan Finished: Found 1 critical issue and 2 guided findings." }
+        { type: "head", text: "Repair Scan Finished: Found 1 blocking issue and 2 actionable fixes." }
       ]);
     }, 1000);
   };
@@ -134,21 +134,21 @@ export default function HomePage() {
     setDocState("repairing");
     setDocLogs(prev => [
       ...prev,
-      { type: "info", text: "Preparing guided fixes. No privileged operation will run automatically." }
+      { type: "info", text: "Preparing action set. Elevated steps remain explicit and user-visible." }
     ]);
 
     setTimeout(() => {
       setDocLogs(prev => [
         ...prev,
-        { type: "ok", text: "Queued launcher metadata repair in user-owned applications directory." },
-        { type: "ok", text: "Generated copyable systemctl command for service follow-up." }
+        { type: "ok", text: "Queued launcher repair and menu refresh for the selected desktop entry." },
+        { type: "ok", text: "Generated xdg-mime and flatpak override commands for follow-up." }
       ]);
     }, 400);
 
     setTimeout(() => {
       setDocLogs(prev => [
         ...prev,
-        { type: "ok", text: "Prepared PATH profile suggestion and cache review command." }
+        { type: "ok", text: "Prepared guided systemctl and ownership repair steps where elevation is required." }
       ]);
     }, 800);
 
@@ -156,7 +156,7 @@ export default function HomePage() {
       setDocState("repaired");
       setDocLogs(prev => [
         ...prev,
-        { type: "success", text: "Success: Safe actions prepared; no admin changes were applied automatically." }
+        { type: "success", text: "Success: Repair actions prepared with before-and-after state and explicit elevation boundaries." }
       ]);
     }, 1200);
   };
@@ -229,7 +229,7 @@ export default function HomePage() {
         >
           <div className="badge animate-float">
             <Sparkles size={12} />
-            <span>Open Source Linux tools v0.1.0</span>
+            <span>Open Source repair suite v0.1.0</span>
           </div>
           <h1>{siteConfig.name}</h1>
           <p>{siteConfig.tagline}</p>
@@ -259,7 +259,7 @@ export default function HomePage() {
               <span className="window-dot yellow" />
               <span className="window-dot green" />
             </div>
-            <div className="window-title">tool-registry ~ DeskCrafter</div>
+            <div className="window-title">action-registry ~ DeskCrafter</div>
             <div className="window-spacer" />
           </div>
 
@@ -287,7 +287,7 @@ export default function HomePage() {
                   type="text"
                   value={targetPath}
                   onChange={(e) => setTargetPath(e.target.value)}
-                  placeholder="~/.local/share/applications"
+                  placeholder="~/.local/share/applications/app.desktop"
                   required
                 />
               </div>
@@ -299,7 +299,7 @@ export default function HomePage() {
                   type="text"
                   value={scanScope}
                   onChange={(e) => setScanScope(e.target.value)}
-                  placeholder="User-owned paths"
+                  placeholder="Desktop integration paths"
                   required
                 />
               </div>
@@ -311,10 +311,10 @@ export default function HomePage() {
                   value={safetyMode}
                   onChange={(e) => setSafetyMode(e.target.value)}
                 >
-                  <option value="Read first">Read first</option>
-                  <option value="User-owned writes">User-owned writes</option>
-                  <option value="Guided admin commands">Guided admin commands</option>
-                  <option value="Inspection only">Inspection only</option>
+                  <option value="Validate then apply">Validate then apply</option>
+                  <option value="User-scope repair">User-scope repair</option>
+                  <option value="Elevated workflow">Elevated workflow</option>
+                  <option value="Guided commands only">Guided commands only</option>
                 </select>
               </div>
 
@@ -325,7 +325,7 @@ export default function HomePage() {
                 disabled={compileState === "compiling"}
               >
                 <MonitorCog size={16} />
-                {compileState === "compiling" ? "Preparing..." : "Prepare Tool Plan"}
+                {compileState === "compiling" ? "Preparing..." : "Prepare Action Plan"}
               </button>
             </form>
 
@@ -345,21 +345,21 @@ export default function HomePage() {
                   className={`sim-tab-btn ${simTab === "mock" ? "active" : ""}`}
                   onClick={() => setSimTab("mock")}
                 >
-                  Tool Preview
+                  Action Preview
                 </button>
               </div>
 
               {simTab === "code" ? (
                 <div className="code-editor">
-                  <span className="code-header-line">[tool]</span>{"\n"}
+                  <span className="code-header-line">[action_plan]</span>{"\n"}
                   <span className="code-key">id</span>=<span className="code-value">&quot;{selectedTool.id}&quot;</span>{"\n"}
                   <span className="code-key">name</span>=<span className="code-value">&quot;{selectedTool.title}&quot;</span>{"\n"}
                   <span className="code-key">category</span>=<span className="code-value">&quot;{selectedTool.category}&quot;</span>{"\n"}
-                  <span className="code-key">risk</span>=<span className="code-value">&quot;{selectedTool.risk}&quot;</span>{"\n"}
+                  <span className="code-key">privilege</span>=<span className="code-value">&quot;{selectedTool.risk}&quot;</span>{"\n"}
                   <span className="code-key">target</span>=<span className="code-value">&quot;{targetPath}&quot;</span>{"\n"}
                   <span className="code-key">scope</span>=<span className="code-value">&quot;{scanScope}&quot;</span>{"\n"}
                   <span className="code-key">mode</span>=<span className="code-value">&quot;{safetyMode}&quot;</span>{"\n"}
-                  <span className="code-comment"># Tool Registry Console: scan first, write only when explicit</span>
+                  <span className="code-comment"># Validate first, then apply explicit repair or integration actions</span>
                 </div>
               ) : (
                 <div className="desktop-preview-pane">
@@ -394,7 +394,7 @@ export default function HomePage() {
                   </>
                 )}
                 {compileState === "idle" && (
-                  <span className="compile-console-idle">Click Prepare Tool Plan to generate safe registry actions</span>
+                  <span className="compile-console-idle">Click Prepare Action Plan to build explicit repair and integration steps</span>
                 )}
               </div>
             </div>
@@ -438,7 +438,7 @@ export default function HomePage() {
               </div>
               <h2>{primaryFeatures[0].title}</h2>
               <p>
-                {primaryFeatures[0].description} It validates generated entries, flags missing targets, and keeps launcher writes inside explicit user-owned paths.
+                {primaryFeatures[0].description} It keeps repairs explicit, refreshes menu state, and supports elevated global installs only when they materially improve integration.
               </p>
             </div>
             <div className="feature-split-visual">
@@ -449,7 +449,7 @@ export default function HomePage() {
                     <span className="window-dot yellow" />
                     <span className="window-dot green" />
                   </div>
-                  <div className="window-title">launcher-manager.visual</div>
+                  <div className="window-title">launcher-repair.action</div>
                 </div>
                 <div className="concept-body-mini">
                   <div className="concept-line pulse-line" style={{ width: "90%" }} />
@@ -475,7 +475,7 @@ export default function HomePage() {
               </div>
               <h2>{primaryFeatures[1].title}</h2>
               <p>
-                {primaryFeatures[1].description} Service and admin-facing surfaces stay read-first, with guided commands instead of automatic escalation.
+                {primaryFeatures[1].description} System-facing fixes stay understandable, reversible where possible, and tied to concrete desktop behavior.
               </p>
             </div>
             <div className="feature-split-visual">
@@ -486,7 +486,7 @@ export default function HomePage() {
                     <span className="window-dot yellow" />
                     <span className="window-dot green" />
                   </div>
-                  <div className="window-title">profile-autostart.scan</div>
+                  <div className="window-title">defaults-sandbox.repair</div>
                 </div>
                 <div className="concept-body-mini">
                   <div className="concept-line concept-line-accent" style={{ width: "40%" }} />
@@ -503,7 +503,7 @@ export default function HomePage() {
       <section className="section bento-section">
         <div className="section-heading centered">
           <span className="eyebrow">Expanded Tool Suite</span>
-          <h2>One registry for the Linux desktop work you actually repeat.</h2>
+          <h2>One action registry for the Linux desktop fixes you actually need.</h2>
         </div>
         <motion.div 
           className="bento-grid"
@@ -527,7 +527,7 @@ export default function HomePage() {
                   <div className="widget-terminal">
                     <div><span className="line-in">$</span> deskcrafter tools inspect {feature.id}</div>
                     {termState >= 1 && <div><span className="line-out">[CATEGORY]</span> {feature.category}</div>}
-                    {termState >= 2 && <div><span className="line-out">[BOUNDARY]</span> {feature.risk}</div>}
+                    {termState >= 2 && <div><span className="line-out">[PRIVILEGE]</span> {feature.risk}</div>}
                   </div>
                 </div>
                 </SpotlightCard>
@@ -547,9 +547,9 @@ export default function HomePage() {
       >
         <div>
           <span className="eyebrow">Linux Integration</span>
-          <h2>Secure Tauri backend runtime with read-first Linux diagnostics.</h2>
+          <h2>Secure Tauri backend runtime built for desktop integration repair.</h2>
            <p className="section-body-text">
-            DeskCrafter reads broadly and writes narrowly. Launcher and permission helpers can act on explicit user-owned paths, while services and cache cleanup remain inspection-first with guided follow-up commands.
+            DeskCrafter scans to support action. User-scope fixes can apply directly, elevated workflows stay explicit, and every tool is shaped around making apps visible, launchable, and correctly associated on Linux.
           </p>
           <div className="principle-list">
             {principles.map((principle) => {
@@ -576,7 +576,7 @@ export default function HomePage() {
                 <span className="window-dot yellow" />
                 <span className="window-dot green" />
               </div>
-              <div className="window-title">suite-scan ~ registry</div>
+              <div className="window-title">repair-console ~ registry</div>
               <div className="window-spacer" />
             </div>
 
@@ -584,7 +584,7 @@ export default function HomePage() {
               {docState === "idle" && (
                 <button id="run-diagnostics-btn" className="doc-btn" onClick={runDiagnostics}>
                   <Play size={11} />
-                  Run Suite Scan
+                  Run Repair Scan
                 </button>
               )}
               {docState === "scanning" && (
@@ -596,7 +596,7 @@ export default function HomePage() {
               {docState === "scanned" && (
                 <button id="run-repair-btn" className="doc-btn doc-btn-repair" onClick={runRepair}>
                   <RotateCcw size={11} />
-                  Prepare Guided Fixes
+                  Prepare Repair Actions
                 </button>
               )}
               {docState === "repairing" && (
@@ -608,7 +608,7 @@ export default function HomePage() {
               {docState === "repaired" && (
                 <span className="doc-btn doc-btn-repaired">
                   <CheckCircle size={11} />
-                  Actions Prepared
+                  Repair Plan Ready
                 </span>
               )}
             </div>
@@ -677,9 +677,9 @@ export default function HomePage() {
         <div className="cta-card">
           <div className="cta-content">
             <MonitorCog size={30} className="cta-icon" />
-            <h2>Ready to inspect your Linux desktop toolchain?</h2>
+            <h2>Ready to repair your Linux app integrations?</h2>
             <p>
-              Manage launchers and autostart, inspect AppImages, PATH, services, cache, permissions, and system profile checks from one local-first workspace.
+              Repair launchers, integrate portable apps, fix startup entries, correct MIME defaults, adjust Flatpak permissions, and recover from ownership drift from one local-first workspace.
             </p>
             <div className="cta-actions">
               <Button href={siteConfig.githubUrl}>
@@ -708,7 +708,7 @@ export default function HomePage() {
             </div>
           </div>
           <div className="footer-bottom">
-            <p>DeskCrafter: Standalone Linux desktop tools suite built for read-first diagnostics and user-owned launcher workflows.</p>
+            <p>DeskCrafter: Standalone Linux desktop repair suite built for explicit actions, guided elevation, and reliable app integration.</p>
           </div>
         </div>
       </footer>
