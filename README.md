@@ -27,6 +27,12 @@ Install dependencies:
 npm install
 ```
 
+Run the full repo checks from any supported shell:
+
+```bash
+npm run check
+```
+
 Run the product site:
 
 ```bash
@@ -37,6 +43,12 @@ Run the desktop UI in browser preview:
 
 ```bash
 npm run dev:desktop:preview
+```
+
+Run the desktop preview and product site side by side:
+
+```bash
+npm run dev:side-by-side
 ```
 
 Run the real Tauri desktop app:
@@ -60,6 +72,8 @@ npm run build:desktop
 ```
 
 `npm run build:desktop` and `npm run dev:desktop` require Tauri's native Linux development libraries. On Fedora-like systems, install WebKitGTK, JavaScriptCoreGTK, libsoup 3, GTK, and appindicator development packages if the build reports missing `.pc` files.
+
+On Windows, prefer the npm scripts instead of calling `cargo` directly from a plain shell. The repo includes a small Cargo wrapper so `npm run cargo:test` and `npm run check` can initialize the required Visual C++ toolchain automatically when it is installed.
 
 ## Documentation
 

@@ -9,6 +9,7 @@
     "dev": "npm run dev:desktop",
     "dev:desktop": "npm run dev -w apps/desktop",
     "dev:desktop:preview": "npm run dev:ui -w apps/desktop -- --host 127.0.0.1 --port 1421",
+    "dev:side-by-side": "concurrently -n desktop,site -c blue,magenta \"npm run dev:desktop:preview\" \"npm run dev:site:preview\"",
     "build:desktop": "npm run build -w apps/desktop",
     "build:desktop:ui": "npm run build:ui -w apps/desktop",
     "dev:site": "npm run dev -w apps/site",
@@ -16,15 +17,17 @@
     "build:site": "npm run build -w apps/site",
     "lint": "npm run lint -w apps/desktop && npm run lint -w apps/site",
     "typecheck": "npm run typecheck -w apps/desktop && npm run typecheck -w apps/site",
-    "test": "npm run test -w apps/desktop && cargo test",
+    "test": "npm run test -w apps/desktop && node scripts/run-cargo.js test",
     "check": "npm run lint && npm run typecheck && npm run test",
-    "cargo:test": "cargo test"
+    "cargo:test": "node scripts/run-cargo.js test",
+    "fix:generated": "node scripts/normalize-next-env.js apps/site"
   },
   "engines": {
     "node": ">=20.0.0",
     "npm": ">=10.0.0"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "^2.9.2"
+    "@tauri-apps/cli": "^2.9.2",
+    "concurrently": "^9.2.1"
   }
 }

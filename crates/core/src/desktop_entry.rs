@@ -137,30 +137,22 @@ pub fn generate(input: &LauncherInput) -> Result<String, CoreError> {
 }
 
 fn runnable_try_exec(exec_path: &str) -> Option<String> {
-    #[cfg(unix)]
-    use std::os::unix::fs::PermissionsExt;
-
     let candidate = exec_path.split_whitespace().next()?.trim();
     if candidate.is_empty() {
         return None;
     }
 
-    if !candidate.starts_with('/') {
+    let path = Path::new(candidate);
+    if !path.is_absolute() {
         return Some(candidate.to_string());
     }
 
-    let path = Path::new(candidate);
     let metadata = path.metadata().ok()?;
     if !metadata.is_file() {
         return None;
     }
 
-    #[cfg(unix)]
-    let is_executable = metadata.permissions().mode() & 0o111 != 0;
-    #[cfg(not(unix))]
-    let is_executable = true;
-
-    if is_executable {
+    if is_executable_file(path, &metadata) {
         Some(candidate.to_string())
     } else {
         None
@@ -168,32 +160,51 @@ fn runnable_try_exec(exec_path: &str) -> Option<String> {
 }
 
 fn non_executable_warning(exec_path: &str) -> Option<String> {
-    #[cfg(unix)]
-    use std::os::unix::fs::PermissionsExt;
-
     let candidate = exec_path.split_whitespace().next()?.trim();
-    if !candidate.starts_with('/') {
+    let path = Path::new(candidate);
+    if !path.is_absolute() {
         return None;
     }
 
-    let path = Path::new(candidate);
     let metadata = path.metadata().ok()?;
     if !metadata.is_file() {
         return None;
     }
 
-    #[cfg(unix)]
-    let is_executable = metadata.permissions().mode() & 0o111 != 0;
-    #[cfg(not(unix))]
-    let is_executable = true;
-
-    if is_executable {
+    if is_executable_file(path, &metadata) {
         None
     } else {
         Some(format!(
             "The target file exists but is not executable: {}",
             path.display()
         ))
+    }
+}
+
+fn is_executable_file(path: &Path, metadata: &std::fs::Metadata) -> bool {
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        metadata.permissions().mode() & 0o111 != 0
+    }
+
+    #[cfg(windows)]
+    {
+        let _ = metadata;
+        path.extension()
+            .and_then(|value| value.to_str())
+            .map(|value| {
+                matches!(
+                    value.to_ascii_lowercase().as_str(),
+                    "exe" | "cmd" | "bat" | "com" | "ps1"
+                )
+            })
+            .unwrap_or(false)
+    }
+
+    #[cfg(not(any(unix, windows)))]
+    {
+        metadata.is_file()
     }
 }
 
@@ -258,13 +269,15 @@ pub fn parse(content: &str, path: PathBuf) -> Result<Launcher, CoreError> {
 mod tests {
     use super::*;
     use std::fs;
+    #[cfg(unix)]
+    use std::os::unix::fs::PermissionsExt;
     use tempfile::tempdir;
 
     fn sample_input() -> LauncherInput {
         LauncherInput {
             name: "Sample App".to_string(),
             description: "A sample launcher".to_string(),
-            exec_path: "/usr/bin/env true".to_string(),
+            exec_path: "env true".to_string(),
             icon_path: "sample".to_string(),
             categories: vec!["Utility".to_string(), "Development".to_string()],
             terminal: false,
@@ -277,18 +290,30 @@ mod tests {
     fn generates_managed_desktop_entry() {
         let content = generate(&sample_input()).expect("entry should generate");
         assert!(content.contains("[Desktop Entry]"));
-        assert!(content.contains("Exec=/usr/bin/env true"));
-        assert!(content.contains("TryExec=/usr/bin/env"));
+        assert!(content.contains("Exec=env true"));
+        assert!(content.contains("TryExec=env"));
         assert!(content.contains("X-DeskCrafter=true"));
         assert!(content.ends_with('\n'));
     }
 
     #[test]
-    fn omits_try_exec_for_non_executable_absolute_targets() {
+    fn includes_try_exec_for_executable_absolute_targets() {
+        let temp = tempdir().expect("tempdir should exist");
+        let target = executable_target(&temp);
         let mut input = sample_input();
-        input.exec_path = "/tmp/deskcrafter-non-executable".to_string();
+        input.exec_path = format!("{} --hello", target.display());
         let content = generate(&input).expect("entry should generate");
-        assert!(!content.contains("TryExec=/tmp/deskcrafter-non-executable"));
+        assert!(content.contains(&format!("TryExec={}", target.display())));
+    }
+
+    #[test]
+    fn omits_try_exec_for_non_executable_absolute_targets() {
+        let temp = tempdir().expect("tempdir should exist");
+        let target = non_executable_target(&temp);
+        let mut input = sample_input();
+        input.exec_path = target.display().to_string();
+        let content = generate(&input).expect("entry should generate");
+        assert!(!content.contains(&format!("TryExec={}", target.display())));
     }
 
     #[test]
@@ -300,8 +325,7 @@ mod tests {
     #[test]
     fn warns_for_non_executable_absolute_targets() {
         let temp = tempdir().expect("tempdir should exist");
-        let target = temp.path().join("sample-appimage");
-        fs::write(&target, "placeholder").expect("file should be written");
+        let target = non_executable_target(&temp);
         let mut input = sample_input();
         input.exec_path = target.display().to_string();
         let warnings = validate_input(&input).expect("validation should succeed");
@@ -328,5 +352,41 @@ mod tests {
         assert!(content.contains("Type=Link"));
         assert!(content.contains("URL=https://example.com"));
         assert!(!content.contains("Exec="));
+    }
+
+    fn executable_target(temp: &tempfile::TempDir) -> PathBuf {
+        #[cfg(windows)]
+        let target = temp.path().join("sample-launcher.cmd");
+        #[cfg(not(windows))]
+        let target = temp.path().join("sample-launcher");
+
+        fs::write(&target, "placeholder").expect("file should be written");
+
+        #[cfg(unix)]
+        {
+            let mut permissions = fs::metadata(&target)
+                .expect("metadata should be readable")
+                .permissions();
+            permissions.set_mode(0o755);
+            fs::set_permissions(&target, permissions).expect("permissions should be updated");
+        }
+
+        target
+    }
+
+    fn non_executable_target(temp: &tempfile::TempDir) -> PathBuf {
+        let target = temp.path().join("sample-appimage");
+        fs::write(&target, "placeholder").expect("file should be written");
+
+        #[cfg(unix)]
+        {
+            let mut permissions = fs::metadata(&target)
+                .expect("metadata should be readable")
+                .permissions();
+            permissions.set_mode(0o644);
+            fs::set_permissions(&target, permissions).expect("permissions should be updated");
+        }
+
+        target
     }
 }

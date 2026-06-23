@@ -1763,14 +1763,14 @@ fn set_desktop_entry_key(content: &str, key: &str, value: &str) -> String {
     format!("{}\n", lines.join("\n"))
 }
 
-fn set_user_file_executable(path: &Path) -> Result<(), CoreError> {
+fn set_user_file_executable(_path: &Path) -> Result<(), CoreError> {
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
-        let metadata = fs::metadata(path)?;
+        let metadata = fs::metadata(_path)?;
         let mut permissions = metadata.permissions();
         permissions.set_mode(permissions.mode() | 0o100);
-        fs::set_permissions(path, permissions)?;
+        fs::set_permissions(_path, permissions)?;
     }
     Ok(())
 }
