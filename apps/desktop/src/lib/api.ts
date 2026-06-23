@@ -194,6 +194,10 @@ function mockTools(): ToolDefinition[] {
         { id: "repair_selected", label: "Repair selected", kind: "repair", requiresPath: false, requiresValue: true, requiresElevation: false },
         { id: "install_global", label: "Install globally", kind: "elevated_action", requiresPath: false, requiresValue: true, requiresElevation: true },
       ],
+      pathInputLabel: "Inspect target",
+      pathInputPlaceholder: "Path to AppImage, script, executable, or https:// URL",
+      valueInputLabel: "Selected launcher id",
+      valueInputPlaceholder: "Uses the selected launcher when available",
     },
     {
       id: "portable_app_integrator",
@@ -209,6 +213,10 @@ function mockTools(): ToolDefinition[] {
         { id: "integrate_path", label: "Integrate path", kind: "install", requiresPath: true, requiresValue: false, requiresElevation: false },
         { id: "relink_target", label: "Re-link target", kind: "repair", requiresPath: true, requiresValue: false, requiresElevation: false },
       ],
+      pathInputLabel: "Portable target",
+      pathInputPlaceholder: "~/.local/share/portable-apps/MyApp.AppImage",
+      valueInputLabel: "Launcher id",
+      valueInputPlaceholder: "Used for remove integration",
     },
     {
       id: "autostart_actions",
@@ -224,6 +232,10 @@ function mockTools(): ToolDefinition[] {
         { id: "enable_launcher", label: "Enable launcher", kind: "install", requiresPath: false, requiresValue: true, requiresElevation: false },
         { id: "disable_path", label: "Disable path", kind: "remove", requiresPath: true, requiresValue: false, requiresElevation: false },
       ],
+      pathInputLabel: "Autostart path or target",
+      pathInputPlaceholder: "~/.config/autostart/example.desktop",
+      valueInputLabel: "Launcher id or new file name",
+      valueInputPlaceholder: "Selected launcher id or copied desktop file name",
     },
     {
       id: "default_apps_mime_manager",
@@ -239,6 +251,10 @@ function mockTools(): ToolDefinition[] {
         { id: "set_default_mime", label: "Set MIME default", kind: "update", requiresPath: true, requiresValue: true, requiresElevation: false },
         { id: "set_default_browser", label: "Set browser", kind: "update", requiresPath: false, requiresValue: true, requiresElevation: false },
       ],
+      pathInputLabel: "MIME type",
+      pathInputPlaceholder: "application/pdf or x-scheme-handler/https",
+      valueInputLabel: "Desktop file id",
+      valueInputPlaceholder: "org.mozilla.firefox.desktop",
     },
     {
       id: "flatpak_permissions_manager",
@@ -255,6 +271,10 @@ function mockTools(): ToolDefinition[] {
         { id: "grant_path", label: "Grant path", kind: "update", requiresPath: true, requiresValue: true, requiresElevation: false },
         { id: "reset_overrides", label: "Reset overrides", kind: "repair", requiresPath: true, requiresValue: false, requiresElevation: false },
       ],
+      pathInputLabel: "Flatpak app id",
+      pathInputPlaceholder: "org.mozilla.firefox",
+      valueInputLabel: "Filesystem path",
+      valueInputPlaceholder: "/home/user/Documents",
     },
     {
       id: "permission_ownership_repair",
@@ -270,6 +290,10 @@ function mockTools(): ToolDefinition[] {
         { id: "make_executable", label: "Make executable", kind: "repair", requiresPath: true, requiresValue: false, requiresElevation: false },
         { id: "fix_ownership", label: "Fix ownership", kind: "elevated_action", requiresPath: true, requiresValue: false, requiresElevation: true },
       ],
+      pathInputLabel: "Path to repair",
+      pathInputPlaceholder: "~/.local/share/applications",
+      valueInputLabel: "Optional value",
+      valueInputPlaceholder: "Unused for current actions",
     },
     {
       id: "service_actions",
@@ -285,6 +309,10 @@ function mockTools(): ToolDefinition[] {
         { id: "start_user", label: "Start user", kind: "update", requiresPath: true, requiresValue: false, requiresElevation: false },
         { id: "start_system", label: "Start system", kind: "elevated_action", requiresPath: true, requiresValue: false, requiresElevation: true },
       ],
+      pathInputLabel: "Service name",
+      pathInputPlaceholder: "pipewire.service",
+      valueInputLabel: "Optional value",
+      valueInputPlaceholder: "Unused for current actions",
     },
     {
       id: "system_profile",
@@ -299,6 +327,10 @@ function mockTools(): ToolDefinition[] {
       primaryActions: [
         { id: "refresh_profile", label: "Refresh profile", kind: "scan", requiresPath: false, requiresValue: false, requiresElevation: false },
       ],
+      pathInputLabel: "Optional query",
+      pathInputPlaceholder: "Leave empty to scan the current system",
+      valueInputLabel: "Optional value",
+      valueInputPlaceholder: "Unused for current actions",
     },
   ];
 }

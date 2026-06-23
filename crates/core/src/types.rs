@@ -190,6 +190,10 @@ pub struct ToolDefinition {
     pub desktop_targets: Vec<String>,
     pub supported_distros: Vec<String>,
     pub primary_actions: Vec<ToolActionDescriptor>,
+    pub path_input_label: String,
+    pub path_input_placeholder: String,
+    pub value_input_label: String,
+    pub value_input_placeholder: String,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]

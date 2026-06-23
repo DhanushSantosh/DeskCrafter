@@ -126,6 +126,10 @@ export interface ToolDefinition {
   desktopTargets: string[];
   supportedDistros: string[];
   primaryActions: ToolActionDescriptor[];
+  pathInputLabel: string;
+  pathInputPlaceholder: string;
+  valueInputLabel: string;
+  valueInputPlaceholder: string;
 }
 
 export interface ToolScanInput {
